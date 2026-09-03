@@ -1,0 +1,173 @@
+.erpShell {
+  min-height: 100vh;
+  background: #f4f1ef;
+  color: #2c2420;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.topbar {
+  position: relative;
+  z-index: 1;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e0dcda;
+  background: #ffffff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  color: #3d1c14;
+  text-decoration: none;
+}
+
+.logo {
+  padding: 7px 10px;
+  border-radius: 4px;
+  background: #3d1c14;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.brandTitle {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.activeProject,
+.userPill {
+  border-radius: 20px;
+  background: #efebe9;
+  color: #4a3f3a;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.activeProject {
+  padding: 7px 16px;
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.syncStatus {
+  color: #4a3f3a;
+  font-size: 12px;
+}
+
+.syncStatus span {
+  color: #2e7d32;
+  font-size: 10px;
+}
+
+.userPill {
+  padding: 6px 14px;
+  color: #3d1c14;
+}
+
+.mainContainer {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+.sidebar {
+  display: flex;
+  width: 220px;
+  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #3d1c14;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px;
+  border-left: 4px solid transparent;
+  color: #d7ccc8;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.navItem:hover,
+.navItem:focus-visible {
+  background: #4a2318;
+  color: #ffffff;
+  outline: none;
+}
+
+.navItem[aria-current="page"] {
+  background: #5d291e;
+  border-left-color: #efebe9;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.navIcon {
+  width: 20px;
+  color: #bcaaa4;
+  font-size: 16px;
+  text-align: center;
+}
+
+.sidebarFooter {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1867e;
+  font-size: 11px;
+}
+
+.content {
+  min-width: 0;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .activeProject {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 0 14px;
+  }
+
+  .brandTitle,
+  .syncStatus {
+    display: none;
+  }
+
+  .sidebar {
+    width: 62px;
+  }
+
+  .navItem {
+    justify-content: center;
+    padding: 14px 8px;
+    border-left-width: 3px;
+    font-size: 0;
+  }
+
+  .navIcon {
+    font-size: 17px;
+  }
+
+  .sidebarFooter {
+    display: none;
+  }
+}

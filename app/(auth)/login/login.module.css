@@ -1,0 +1,147 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: #f4f1ef;
+  color: #2c2420;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.loginPanel {
+  width: min(100%, 430px);
+  padding: 42px;
+  background: #ffffff;
+  border: 1px solid #e0dcda;
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(61, 28, 20, 0.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 42px;
+}
+
+.logo {
+  padding: 8px 11px;
+  border-radius: 4px;
+  background: #3d1c14;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.brandName {
+  color: #3d1c14;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.heading {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #8d6e63;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.heading h1 {
+  margin: 0 0 8px;
+  color: #3d1c14;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.heading p:last-child,
+.footerNote {
+  margin: 0;
+  color: #726560;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.alert {
+  padding: 11px 12px;
+  border: 1px solid #d99b91;
+  border-radius: 4px;
+  background: #fbeae6;
+  color: #8c3025;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.formGroup {
+  display: grid;
+  gap: 7px;
+}
+
+.formGroup label {
+  color: #4a3f3a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d3cec9;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #2c2420;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.formGroup input:focus {
+  border-color: #8d6e63;
+  box-shadow: 0 0 0 3px rgba(141, 110, 99, 0.16);
+}
+
+.submitButton {
+  margin-top: 4px;
+  padding: 12px;
+  border: 0;
+  border-radius: 4px;
+  background: #3d1c14;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.submitButton:hover {
+  background: #5d291e;
+}
+
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.footerNote {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 11px;
+}
+
+@media (max-width: 480px) {
+  .loginPanel {
+    padding: 30px 24px;
+  }
+}

@@ -1,0 +1,159 @@
+.siteShell {
+  min-height: 100vh;
+  background: #f4f5f7;
+  color: #2b2320;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.topbar {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px clamp(20px, 5vw, 64px);
+  border-bottom: 1px solid #e2e0dc;
+  background: #ffffff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
+  color: #3d1c14;
+  text-decoration: none;
+}
+
+.logo {
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #3d1c14;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.brandTitle {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.25px;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 34px);
+}
+
+.navigation a,
+.footer a {
+  color: #4a3f3a;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.navigation a:hover,
+.navigation a:focus-visible,
+.footer a:hover,
+.footer a:focus-visible {
+  color: #3d1c14;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.ctaButton {
+  padding: 12px 20px;
+  border-radius: 4px;
+  background: #3d1c14;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ctaButton:hover,
+.ctaButton:focus-visible {
+  background: #5d291e;
+}
+
+.footer {
+  background: #2b120c;
+  color: #d7ccc8;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 44px clamp(20px, 5vw, 64px) 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footer h2,
+.footer h3 {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.footer h2 {
+  font-size: 14px;
+}
+
+.footer p,
+.footer a {
+  display: block;
+  margin: 0 0 7px;
+  color: #bcaaa4;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.footerBottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 18px clamp(20px, 5vw, 64px);
+  color: #a1867e;
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .navigation {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .brandTitle {
+    font-size: 13px;
+  }
+
+  .ctaButton {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .footerGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footerBottom {
+    flex-direction: column;
+  }
+}
