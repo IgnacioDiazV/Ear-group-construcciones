@@ -1,19 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getObrasPublicas } from "@/features/public/queries";
 import { ContactForm } from "./contact-form";
 import contactStyles from "./contact.module.css";
 import homeStyles from "./home.module.css";
 import portfolioStyles from "./portfolio.module.css";
 import servicesStyles from "./services.module.css";
-
-const projects = [
-  { title: "Torre Alvear - Fase 2", type: "Edificio residencial", location: "Buenos Aires", status: "En ejecución", imageAlt: "Render de Torre Alvear" },
-  { title: "Residencia Jardín Sur", type: "Residencial multifamiliar", location: "Tucumán", status: "Finalizado", imageAlt: "Render de Residencia Jardín Sur" },
-  { title: "Centro Comercial Pilar", type: "Desarrollo comercial", location: "Pilar", status: "Conforme a obra", imageAlt: "Render de Centro Comercial Pilar" },
-  { title: "Sede Corporativa Norte", type: "Oficinas corporativas", location: "Buenos Aires", status: "En ejecución", imageAlt: "Render de Sede Corporativa Norte" },
-  { title: "Complejo Residencial Siandencio", type: "Residencial", location: "Tucumán", status: "En revisión", imageAlt: "Render de Complejo Residencial Siandencio" },
-  { title: "Edificio Moderno B", type: "Edificio residencial", location: "Buenos Aires", status: "Finalizado", imageAlt: "Render de Edificio Moderno B" },
-];
 
 const services = [
   { number: "01", title: "Dirección y Ejecución Integral de Obra", description: "Coordinamos cada etapa con foco en calidad, tiempos y una ejecución ordenada." },
@@ -27,7 +19,23 @@ export const metadata = {
   description: "Diseño, cálculo y ejecución de obra integral.",
 };
 
-export default function PublicHomePage() {
+function formatProjectStatus(status: string | null) {
+  switch (status?.toLowerCase()) {
+    case "en_ejecucion":
+    case "ejecucion":
+      return "En ejecución";
+    case "finalizada":
+      return "Finalizada";
+    case "cancelada":
+      return "Cancelada";
+    default:
+      return "Presupuesto";
+  }
+}
+
+export default async function PublicHomePage() {
+  const projects = await getObrasPublicas();
+
   return (
     <>
       <section className={homeStyles.hero}>
@@ -52,30 +60,30 @@ export default function PublicHomePage() {
       </section>
 
       <main className={homeStyles.content}>
-        <section id="portfolio">
+        {projects.length > 0 && <section id="portfolio">
           <div className={homeStyles.sectionHeading}>
             <p className={homeStyles.eyebrow}>Trabajo que permanece</p>
-            <h2>Nuestro portafolio</h2>
-            <p>Obras destacadas y desarrollos en ejecución.</p>
+            <h2>Nuestros proyectos</h2>
+            <p>Obras destacadas y desarrollos en ejecución de EAR Group.</p>
           </div>
           <div className={portfolioStyles.portfolioGrid}>
             {projects.map((project) => (
-              <article className={portfolioStyles.projectCard} key={project.title}>
+              <article className={portfolioStyles.projectCard} key={project.id}>
                 <div className={portfolioStyles.projectThumb}>
-                  <Image alt={project.imageAlt} fill sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw" src="/renders/obra-placeholder.svg" />
-                  <span>{project.title}</span>
+                  <Image alt={`Render de ${project.nombre}`} fill sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw" src={project.portada_url ?? "/renders/obra-placeholder.svg"} />
+                  <span>{project.nombre}</span>
                 </div>
                 <div className={portfolioStyles.projectInfo}>
                   <div>
-                    <h3>{project.title}</h3>
-                    <p>{project.type} <span aria-hidden="true">·</span> {project.location}</p>
+                    <h3>{project.nombre}</h3>
+                    <p>{project.tipo_obra} <span aria-hidden="true">·</span> {project.direccion ?? "Ubicación no publicada"}</p>
                   </div>
-                  <span className={portfolioStyles.projectStatus}>{project.status}</span>
+                  <span className={portfolioStyles.projectStatus}>{formatProjectStatus(project.estado)}</span>
                 </div>
               </article>
             ))}
           </div>
-        </section>
+        </section>}
 
         <section className={servicesStyles.servicesSection} id="servicios">
           <div className={servicesStyles.sectionHeading}>

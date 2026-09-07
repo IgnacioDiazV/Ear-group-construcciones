@@ -1,0 +1,62 @@
+.page { min-height: 100vh; background: #f4f1ef; color: #2c2420; }
+.container { max-width: 1280px; margin: 0 auto; padding: 32px clamp(20px, 4vw, 48px) 64px; }
+.header { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid #e0dcda; }
+.eyebrow { margin: 0 0 8px; color: #8d6e63; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; }
+.title { margin: 0; color: #3d1c14; font-size: 32px; line-height: 1.15; }
+.subtitle { max-width: 620px; margin: 8px 0 0; color: #726560; font-size: 14px; line-height: 1.5; }
+.primaryButton { border: 0; border-radius: 4px; padding: 11px 17px; background: #3d1c14; color: #ffffff; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.primaryButton:hover { background: #5d291e; }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0 30px; }
+.metric { padding: 18px; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; box-shadow: 0 5px 18px rgba(61, 28, 20, 0.04); }
+.metricLabel { color: #726560; font-size: 11px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
+.metricValue { margin-top: 6px; color: #3d1c14; font-size: 27px; font-weight: 800; }
+.metricNote { margin-top: 4px; color: #8d6e63; font-size: 12px; }
+.cardGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.obraCard { padding: 20px; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; box-shadow: 0 7px 20px rgba(61, 28, 20, 0.05); transition: transform 180ms ease, box-shadow 180ms ease; }
+.obraCard:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(61, 28, 20, 0.1); }
+.cardTop { display: flex; align-items: start; justify-content: space-between; gap: 12px; padding-bottom: 17px; border-bottom: 1px solid #efebe9; }
+.code { margin: 0 0 5px; color: #8d6e63; font-family: Consolas, monospace; font-size: 11px; font-weight: 700; letter-spacing: .7px; }
+.obraTitle { margin: 0; color: #3d1c14; font-size: 17px; line-height: 1.3; }
+.badge { display: inline-flex; flex-shrink: 0; padding: 4px 9px; border-radius: 12px; background: #efebe9; color: #5d291e; font-size: 11px; font-weight: 700; }
+.badgeActive { background: #e8f5e9; color: #2e7d32; }
+.badgeReview { background: #fbeee0; color: #b8722a; }
+.details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 17px 0 0; }
+.details div:last-child { grid-column: span 2; }
+.details dt { color: #8d6e63; font-size: 11px; }
+.details dd { margin: 4px 0 0; color: #4a3f3a; font-size: 13px; font-weight: 600; }
+.detailLink { display: inline-block; margin-top: 18px; color: #5d291e; font-size: 13px; font-weight: 700; text-decoration: none; }
+.detailLink:hover { color: #3d1c14; text-decoration: underline; text-underline-offset: 3px; }
+.tableCard { margin-top: 30px; overflow: hidden; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; }
+.tableHeading { padding: 18px 20px; border-bottom: 1px solid #e0dcda; }
+.tableHeading h2 { margin: 0; color: #3d1c14; font-size: 17px; }
+.tableHeading p { margin: 4px 0 0; color: #726560; font-size: 12px; }
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; min-width: 720px; border-collapse: collapse; text-align: left; font-size: 13px; }
+.table th { padding: 11px 20px; background: #f4f1ef; color: #726560; font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+.table td { padding: 14px 20px; border-top: 1px solid #efebe9; color: #4a3f3a; }
+.table tr:hover td { background: #fcfaf9; }
+.tableName { color: #3d1c14; font-weight: 700; text-decoration: none; }
+.tableName:hover { text-decoration: underline; text-underline-offset: 3px; }
+.empty { padding: 58px 24px; border: 1px dashed #c8bcb6; border-radius: 6px; background: #ffffff; text-align: center; }
+.empty h2 { margin: 0; color: #3d1c14; font-size: 19px; }
+.empty p { margin: 8px 0 20px; color: #726560; font-size: 14px; }
+.secondaryButton { border: 1px solid #3d1c14; border-radius: 4px; padding: 10px 15px; background: #ffffff; color: #3d1c14; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
+.secondaryButton:hover { background: #efebe9; }
+.modalBackdrop { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(43, 18, 12, .38); }
+.modal { width: min(100%, 650px); max-height: calc(100vh - 40px); overflow-y: auto; padding: 26px; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; box-shadow: 0 22px 60px rgba(43, 18, 12, .24); }
+.modalHeader { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.modalHeader h2 { margin: 0; color: #3d1c14; font-size: 22px; }
+.closeButton { border: 0; background: transparent; color: #726560; cursor: pointer; font-size: 24px; line-height: 1; }
+.form { display: grid; gap: 15px; }
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: grid; gap: 6px; }
+.field label { color: #4a3f3a; font-size: 12px; font-weight: 700; }
+.field input, .field select { width: 100%; padding: 10px 11px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #2c2420; font: inherit; font-size: 13px; }
+.field input:focus, .field select:focus { border-color: #8d6e63; outline: 3px solid rgba(141, 110, 99, .15); }
+.formActions { display: flex; justify-content: end; gap: 10px; margin-top: 5px; }
+.alertError, .alertSuccess { padding: 10px 12px; border-radius: 4px; font-size: 13px; }
+.alertError { border: 1px solid #d99b91; background: #fbeae6; color: #8c3025; }
+.alertSuccess { border: 1px solid #a8cbaa; background: #e8f5e9; color: #2e7d32; }
+.seedNote { margin: 0 0 14px; color: #726560; font-size: 13px; }
+@media (max-width: 1000px) { .cardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .header { align-items: start; flex-direction: column; } .metrics { grid-template-columns: 1fr; } .cardGrid { grid-template-columns: 1fr; } .formRow { grid-template-columns: 1fr; } .modal { padding: 21px; } }
