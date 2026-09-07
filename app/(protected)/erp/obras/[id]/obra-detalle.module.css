@@ -93,6 +93,7 @@
 .listTitle { margin: 0 0 5px; color: #3d1c14; font-size: 13px; font-weight: 700; }
 .listMeta { margin: 0; color: #726560; font-size: 12px; line-height: 1.5; }
 .listValue { color: #4a3f3a; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.expenseActions { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 .typeTag { display: inline-flex; margin-left: 7px; padding: 3px 7px; border-radius: 10px; background: #efebe9; color: #5d291e; font-size: 10px; font-weight: 700; }
 .empty { padding: 34px 20px; color: #726560; font-size: 13px; text-align: center; }
 .error { margin: 14px 20px; padding: 11px 12px; border: 1px solid #d99b91; border-radius: 4px; background: #fbeae6; color: #8c3025; font-size: 13px; }

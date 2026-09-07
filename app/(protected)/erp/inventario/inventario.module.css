@@ -1,0 +1,44 @@
+.page { min-height: 100vh; background: #f4f1ef; color: #2c2420; }
+.container { max-width: 1280px; margin: 0 auto; padding: 32px clamp(20px, 4vw, 48px) 64px; }
+.header { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #e0dcda; }
+.eyebrow { margin: 0 0 8px; color: #8d6e63; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; }
+.header h1 { margin: 0; color: #3d1c14; font-size: 32px; }
+.header p:last-child { margin: 8px 0 0; color: #726560; font-size: 14px; }
+.card { margin-top: 26px; overflow: hidden; border: 1px solid #e0dcda; border-radius: 6px; background: #fff; box-shadow: 0 7px 22px rgba(61,28,20,.05); }
+.cardHeader { padding: 20px; border-bottom: 1px solid #e0dcda; }
+.cardHeader h2 { margin: 0; color: #3d1c14; font-size: 18px; }
+.cardHeader p { margin: 5px 0 0; color: #726560; font-size: 13px; }
+.primaryButton,.secondaryButton { border-radius: 4px; padding: 10px 15px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
+.primaryButton { border: 0; background: #3d1c14; color: #fff; }
+.primaryButton:hover { background: #5d291e; }
+.secondaryButton { border: 1px solid #3d1c14; background: #fff; color: #3d1c14; }
+.secondaryButton:hover { background: #efebe9; }
+.secondaryButton:disabled,.primaryButton:disabled { cursor: wait; opacity: .6; }
+.tableWrapper { overflow-x: auto; padding: 0 20px 20px; }
+.tableToolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 0 16px; }
+.tableCount { margin: 0; color: #726560; font-size: 13px; }
+.filterLabel { display: flex; align-items: center; gap: 9px; color: #4a3f3a; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.filterSelect { min-width: 210px; padding: 9px 30px 9px 10px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #3d1c14; font: inherit; font-size: 13px; font-weight: 500; }
+.filterSelect:focus { border-color: #8d6e63; outline: 3px solid rgba(141, 110, 99, .15); }
+.table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: left; font-size: 13px; }
+.table th { padding: 12px 10px; background: #f4f1ef; color: #726560; font-size: 11px; text-transform: uppercase; }
+.table td { padding: 14px 10px; border-top: 1px solid #efebe9; color: #4a3f3a; }
+.table tr:hover td { background: #fcfaf9; }
+.error { margin: 16px 20px; padding: 11px 12px; border: 1px solid #d99b91; border-radius: 4px; background: #fbeae6; color: #8c3025; font-size: 13px; }
+.empty { padding: 42px 20px; color: #726560; text-align: center; }
+.modalBackdrop { position: fixed; z-index: 50; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.5); }
+.modal { width: min(100%, 680px); max-height: calc(100vh - 40px); overflow-y: auto; padding: 26px; border: 1px solid #e0dcda; border-radius: 8px; background: #fff; box-shadow: 0 24px 70px rgba(43,18,12,.25); }
+.modalHeader { display: flex; align-items: start; justify-content: space-between; margin-bottom: 22px; }
+.modalHeader h2 { margin: 0; color: #3d1c14; font-size: 23px; }
+.closeButton { border: 0; background: none; color: #726560; cursor: pointer; font-size: 25px; }
+.formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.formGrid label,.textareaLabel { display: grid; gap: 6px; color: #4a3f3a; font-size: 12px; font-weight: 700; }
+.formGrid select,.formGrid input,.textareaLabel textarea,.importRow input { width: 100%; padding: 10px 11px; border: 1px solid #d3cec9; border-radius: 4px; background: #fff; color: #2c2420; font: inherit; font-size: 13px; }
+.textareaLabel { margin-top: 16px; }
+.textareaLabel textarea { min-height: 130px; resize: vertical; }
+.importTable { margin-top: 18px; border: 1px solid #e0dcda; border-radius: 5px; overflow: hidden; }
+.importHeader,.importRow { display: grid; grid-template-columns: 120px 1fr; gap: 10px; padding: 9px 12px; }
+.importHeader { background: #f4f1ef; color: #726560; font-size: 11px; text-transform: uppercase; }
+.importRow { border-top: 1px solid #efebe9; }
+.modalActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+@media (max-width: 680px) { .header { align-items: start; flex-direction: column; } .formGrid { grid-template-columns: 1fr; } .modal { padding: 20px; } .tableToolbar { align-items: stretch; flex-direction: column; } .filterLabel { justify-content: space-between; } .filterSelect { min-width: 0; flex: 1; } }
