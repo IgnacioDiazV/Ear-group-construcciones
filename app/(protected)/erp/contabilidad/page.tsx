@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ExpenseForm } from "./expense-form";
 import { ExpenseTable } from "./expense-table";
+import { ContabilidadTabs } from "./contabilidad-tabs";
 import styles from "./contabilidad.module.css";
 
 type Obra = { id: number; nombre: string };
@@ -17,5 +18,5 @@ export default async function ContabilidadPage() {
   const expenses = (gastosData ?? []).map((expense) => ({ ...expense, obra_nombre: obraNames.get(expense.obra_id) ?? `Obra #${expense.obra_id}` }));
   const error = obrasError?.message ?? gastosError?.message;
 
-  return <main className={styles.page}><div className={styles.container}><header className={styles.header}><div><p className={styles.eyebrow}>EAR Group / ERP</p><h1>Contabilidad y comprobantes</h1><p>Gastos particionados por obra y documentación respaldatoria.</p></div><ExpenseForm obras={obras} /></header>{error && <div className={styles.error} role="alert">No se pudo cargar contabilidad: {error}</div>}<section className={styles.card}><div className={styles.cardHeader}><h2>Gastos de obra</h2><p>Filtrá los comprobantes por centro de costos.</p></div><ExpenseTable expenses={expenses} obras={obras} /></section></div></main>;
+  return <main className={styles.page}><div className={styles.container}><header className={styles.header}><div><p className={styles.eyebrow}>EAR Group / ERP</p><h1>Contabilidad y comprobantes</h1><p>Gastos particionados por obra y documentación respaldatoria.</p></div></header><ContabilidadTabs />{error && <div className={styles.error} role="alert">No se pudo cargar contabilidad: {error}</div>}<ExpenseForm obras={obras} /><section className={styles.card}><div className={styles.cardHeader}><h2>Gastos de obra</h2><p>Filtrá los comprobantes por centro de costos.</p></div><ExpenseTable expenses={expenses} obras={obras} /></section></div></main>;
 }

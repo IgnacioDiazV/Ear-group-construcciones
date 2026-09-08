@@ -24,8 +24,8 @@
 .details div:last-child { grid-column: span 2; }
 .details dt { color: #8d6e63; font-size: 11px; }
 .details dd { margin: 4px 0 0; color: #4a3f3a; font-size: 13px; font-weight: 600; }
-.detailLink { display: inline-block; margin-top: 18px; color: #5d291e; font-size: 13px; font-weight: 700; text-decoration: none; }
-.detailLink:hover { color: #3d1c14; text-decoration: underline; text-underline-offset: 3px; }
+.detailButton { display: inline-flex; align-items: center; justify-content: center; margin-top: 18px; padding: 10px 14px; border: 1px solid #3d1c14; border-radius: 4px; background: #3d1c14; color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: none; transition: background 160ms ease, transform 160ms ease; }
+.detailButton:hover { background: #5d291e; transform: translateY(-1px); }
 .tableCard { margin-top: 30px; overflow: hidden; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; }
 .tableHeading { padding: 18px 20px; border-bottom: 1px solid #e0dcda; }
 .tableHeading h2 { margin: 0; color: #3d1c14; font-size: 17px; }

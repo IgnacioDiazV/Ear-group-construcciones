@@ -8,8 +8,10 @@ type RawAsignacion = { id: number; obra_id: number; descripcion_libre: string; c
 
 export default async function InventarioPage() {
   const supabase = await createSupabaseServerClient();
-  const { data: obrasData, error: obrasError } = await supabase.from("obras").select("id, nombre, estado").order("nombre");
-  const { data: asignacionesData, error: asignacionesError } = await (supabase.from("asignacion_herramientas") as unknown as { select: (columns: string) => { is: (column: string, value: null) => Promise<{ data: RawAsignacion[] | null; error: { message: string } | null }> } }).select("id, obra_id, descripcion_libre, cantidad, cantidad_devuelta, fecha_entrega, fecha_devolucion").is("fecha_devolucion", null);
+  const [{ data: obrasData, error: obrasError }, { data: asignacionesData, error: asignacionesError }] = await Promise.all([
+    supabase.from("obras").select("id, nombre, estado").order("nombre"),
+    (supabase.from("asignacion_herramientas") as unknown as { select: (columns: string) => { is: (column: string, value: null) => Promise<{ data: RawAsignacion[] | null; error: { message: string } | null }> } }).select("id, obra_id, descripcion_libre, cantidad, cantidad_devuelta, fecha_entrega, fecha_devolucion").is("fecha_devolucion", null),
+  ]);
 
   const obras = ((obrasData ?? []) as Array<ObraOption & { estado: string | null }>).filter((obra) => !["finalizada", "cancelada"].includes(obra.estado?.toLowerCase() ?? ""));
   const obraNames = new Map(obrasData?.map((obra) => [obra.id, obra.nombre]) ?? []);

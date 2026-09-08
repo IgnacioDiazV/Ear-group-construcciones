@@ -1,0 +1,13 @@
+.actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.action { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0; border-radius: 4px; background: transparent; color: #666; cursor: pointer; text-decoration: none; }
+.action:hover, .action:focus-visible { background: #efebe9; color: #3d1c14; outline: none; }
+.danger:hover, .danger:focus-visible { color: #b91c1c; }
+.action svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.previewBackdrop { position: fixed; z-index: 60; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0,0,0,.55); }
+.previewModal { width: min(100%, 900px); height: min(90vh, 760px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e0dcda; border-radius: 8px; background: #fff; box-shadow: 0 24px 70px rgba(43,18,12,.25); }
+.previewHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #e0dcda; color: #3d1c14; font-weight: 700; }
+.close { border: 0; background: transparent; color: #726560; cursor: pointer; font-size: 24px; }
+.previewBody { min-height: 0; display: grid; place-items: center; flex: 1; background: #f4f1ef; }
+.previewImage { max-width: 100%; max-height: 100%; object-fit: contain; }
+.previewFrame { width: 100%; height: 100%; border: 0; }
+.previewError { padding: 16px; color: #8c3025; font-size: 13px; }

@@ -4,31 +4,14 @@ import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { createObra, seedObras, type ObraActionState } from "./actions";
 import styles from "./obras.module.css";
-import type { Obra } from "@/features/obras/queries";
+import type { ObraResumen } from "@/features/obras/queries";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 import { normalizeObraEstado, obraEstadoLabel } from "./estado";
 
 const initialState: ObraActionState = {};
 
 function formatStatus(status: string | null) {
   return obraEstadoLabel(status);
-}
-
-function formatBudget(obra: Obra) {
-  if (obra.presupuesto_base === null) return "Sin presupuesto";
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: obra.moneda_base === "USD" ? "USD" : "ARS",
-    maximumFractionDigits: 0,
-  }).format(obra.presupuesto_base);
-}
-
-function formatDate(date: string | null) {
-  if (!date) return "Sin fecha";
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
 }
 
 function StatusBadge({ status }: { status: string | null }) {
@@ -126,7 +109,7 @@ function NewObraModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function ObrasView({ obras }: { obras: Obra[] }) {
+export function ObrasView({ obras }: { obras: ObraResumen[] }) {
   const [isModalOpen, setModalOpen] = useState(false);
   const [seedState, seedAction, isSeeding] = useActionState(seedObras, initialState);
   const activeCount = obras.filter((obra) => obra.estado?.toLowerCase().includes("ejec")).length;
@@ -174,10 +157,12 @@ export function ObrasView({ obras }: { obras: Obra[] }) {
                   </div>
                   <dl className={styles.details}>
                     <div><dt>Tipo de obra</dt><dd>{obra.tipo_obra}</dd></div>
-                    <div><dt>Presupuesto base</dt><dd>{formatBudget(obra)}</dd></div>
+                    <div><dt>Presupuesto asignado</dt><dd>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</dd></div>
+                    <div><dt>Gastos ejecutados</dt><dd>{formatCurrency(obra.gastos_ejecutados, obra.moneda_base ?? "ARS")}</dd></div>
+                    <div><dt>Herramientas pendientes</dt><dd>{obra.herramientas_asignadas}</dd></div>
                     <div><dt>Ubicación</dt><dd>{obra.direccion ?? "Sin dirección cargada"}</dd></div>
                   </dl>
-                  <Link className={styles.detailLink} href={`/erp/obras/${obra.id}`}>Ver detalle -&gt;</Link>
+                  <Link className={styles.detailButton} href={`/erp/obras/${obra.id}`}>Ver detalles</Link>
                 </article>
               ))}
             </section>
@@ -186,7 +171,7 @@ export function ObrasView({ obras }: { obras: Obra[] }) {
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>Código / obra</th><th>Estado</th><th>Inicio</th><th>Cierre estimado</th><th>Presupuesto</th></tr></thead>
-                  <tbody>{obras.map((obra) => <tr key={`row-${obra.id}`}><td><Link className={styles.tableName} href={`/erp/obras/${obra.id}`}>{obra.nombre}</Link><div className={styles.code}>{obra.codigo}</div></td><td><StatusBadge status={obra.estado} /></td><td>{formatDate(obra.fecha_inicio)}</td><td>{formatDate(obra.fecha_fin_estimada)}</td><td>{formatBudget(obra)}</td></tr>)}</tbody>
+                  <tbody>{obras.map((obra) => <tr key={`row-${obra.id}`}><td><Link className={styles.tableName} href={`/erp/obras/${obra.id}`}>{obra.nombre}</Link><div className={styles.code}>{obra.codigo}</div></td><td><StatusBadge status={obra.estado} /></td><td>{formatDate(obra.fecha_inicio)}</td><td>{formatDate(obra.fecha_fin_estimada)}</td><td>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</td></tr>)}</tbody>
                 </table>
               </div>
             </section>
