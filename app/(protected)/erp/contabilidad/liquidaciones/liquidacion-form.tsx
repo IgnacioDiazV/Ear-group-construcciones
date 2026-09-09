@@ -28,7 +28,7 @@ export function LiquidacionForm({ obras }: { obras: { id: number; nombre: string
     }
   }
 
-  return <form action={formAction} className={styles.form} encType="multipart/form-data">
+  return <form action={formAction} className={styles.form}>
     {state.error && <div className={styles.error} role="alert">{state.error}</div>}
     {state.success && <div className={styles.success} role="status">{state.success}</div>}
     <div className={styles.formGrid}><label>Obra<select defaultValue="" name="obra_id" required><option disabled value="">Seleccioná una obra</option>{obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}</select></label><label>Semana / Período<input name="semana" placeholder="Semana 36 - Septiembre 2026" required /></label><label>Monto total liquidado ($)<input min="0" name="total_pagado" required step="0.01" type="number" /></label></div>
