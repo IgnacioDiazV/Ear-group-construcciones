@@ -17,29 +17,34 @@ function safeFolder(name: string, id: number) {
 }
 
 export async function guardarLiquidacion(_previousState: LiquidacionActionState, formData: FormData): Promise<LiquidacionActionState> {
-  const obraId = Number(formData.get("obra_id"));
+  const obraIdRaw = String(formData.get("obra_id") ?? "").trim();
+  const obraId = obraIdRaw ? Number(obraIdRaw) : null;
   const semanaTexto = String(formData.get("semana") ?? formData.get("semana_etiqueta") ?? "").trim();
   const fechaPago = String(formData.get("fecha_pago") ?? "").trim();
   const montoTotal = Number(formData.get("total_pagado"));
   const file = formData.get("file");
 
-  if (!Number.isInteger(obraId) || !semanaTexto || !Number.isFinite(montoTotal) || !(file instanceof File) || file.size === 0) {
-    return { error: "Completá la obra, semana, monto total y adjuntá un archivo." };
+  if ((obraId !== null && !Number.isInteger(obraId)) || !semanaTexto || !Number.isFinite(montoTotal) || !(file instanceof File) || file.size === 0) {
+    return { error: "Completá la semana, el monto total y adjuntá un archivo." };
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: obra } = await supabase.from("obras").select("nombre").eq("id", obraId).maybeSingle();
-  if (!obra) return { error: "La obra seleccionada no existe." };
+  let obraNombre = "Planilla General (Multi-obra)";
+  if (obraId !== null) {
+    const { data: obra } = await supabase.from("obras").select("nombre").eq("id", obraId).maybeSingle();
+    if (!obra) return { error: "La obra seleccionada no existe." };
+    obraNombre = obra.nombre;
+  }
 
   const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-  const path = `${safeFolder(obra.nombre, obraId)}/liquidaciones/${Date.now()}-${filename}`;
+  const path = `${safeFolder(obraNombre, obraId ?? 0)}/liquidaciones/${Date.now()}-${filename}`;
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
   if (uploadError) return { error: `No se pudo subir la planilla: ${uploadError.message}` };
 
   const archivoUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
   const database = supabase as unknown as { from: (table: string) => { insert: (value: unknown) => Promise<{ error: { message: string } | null }> } };
   const payload = {
-    obra_id: Number(obraId),
+    obra_id: obraId,
     semana_etiqueta: semanaTexto,
     fecha_pago: fechaPago || new Date().toISOString().split("T")[0],
     total_pagado: Number(montoTotal) || 0,
@@ -55,14 +60,41 @@ export async function guardarLiquidacion(_previousState: LiquidacionActionState,
   return { success: "Planilla guardada correctamente." };
 }
 
-export async function eliminarLiquidacion(id: number, storageUrl: string | null) {
-  if (!Number.isInteger(id) || id <= 0) return { error: "La liquidación seleccionada no es válida." };
-  const supabase = await createSupabaseServerClient();
-  if (storageUrl) await supabase.storage.from(BUCKET).remove([storagePathFromUrl(storageUrl)]);
+export async function eliminarLiquidacion(id: string, storageUrl: string | null) {
+  const idLimpio = String(id ?? "").trim();
+  if (!idLimpio) return { error: "La liquidación seleccionada no es válida." };
 
-  const database = supabase as unknown as { from: (table: string) => { delete: () => { eq: (column: string, value: number) => Promise<{ error: { message: string } | null }> } } };
-  const { error } = await database.from("caja_semanal").delete().eq("id", id);
-  if (error) return { error: `No se pudo eliminar la liquidación: ${error.message}` };
+  const supabase = await createSupabaseServerClient();
+
+  // Casteo para evitar el bloqueo de TypeScript por tipos desactualizados
+  const db = supabase as any;
+
+  // 1. Borrar archivo de storage si existe
+  if (storageUrl) {
+    try {
+      const path = storagePathFromUrl(storageUrl);
+      if (path) await supabase.storage.from(BUCKET).remove([path]);
+    } catch (storageErr) {
+      console.warn("No se pudo eliminar el archivo en storage:", storageErr);
+    }
+  }
+
+  // 2. Borrar filas hijas en caja_semanal_filas si existen
+  await db
+    .from("caja_semanal_filas")
+    .delete()
+    .eq("caja_semanal_id", idLimpio);
+
+  // 3. Borrar la cabecera en caja_semanal
+  const { error } = await db
+    .from("caja_semanal")
+    .delete()
+    .eq("id", idLimpio);
+
+  if (error) {
+    return { error: `No se pudo eliminar la liquidación: ${error.message}` };
+  }
+
   revalidatePath("/erp/contabilidad/liquidaciones");
   return { success: "Liquidación eliminada." };
 }

@@ -18,7 +18,7 @@ type Anticipo = {
   fecha_estimada_cobro: string | null;
   fecha_cobro_real: string | null;
   estado: string | null;
-  cheques?: Array<{ id: number; banco: string; numero_cheque: string; fecha_pago_diferido: string }>;
+  cheques?: Array<{ id: number; banco: string; numero_cheque: string; fecha_pago_diferido: string }> | { id: number; banco: string; numero_cheque: string; fecha_pago_diferido: string } | null;
 };
 
 export default async function CobrosPage() {
@@ -30,7 +30,7 @@ export default async function CobrosPage() {
   const obras = (obrasData ?? []) as Obra[];
   const obraNames = new Map(obras.map((obra) => [obra.id, obra.nombre]));
   const rows = ((cobrosData ?? []) as Anticipo[]).map((cobro) => {
-    const cheque = cobro.cheques?.[0];
+    const cheque = Array.isArray(cobro.cheques) ? cobro.cheques[0] : cobro.cheques ?? undefined;
     return {
       ...cobro,
       obra_nombre: obraNames.get(cobro.obra_id) ?? `Obra #${cobro.obra_id}`,

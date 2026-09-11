@@ -31,12 +31,21 @@ export function CobrosTable({ rows }: { rows: Cobro[] }) {
   const WHATSAPP_PHONE = "5493816958566";
   const DAYS_AHEAD = 5;
 
+  function parseFechaLocal(value?: string | null): Date | null {
+    if (!value) return null;
+    const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]), 12, 0, 0);
+    const latino = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(value);
+    if (latino) return new Date(Number(latino[3]), Number(latino[2]) - 1, Number(latino[1]), 12, 0, 0);
+    return null;
+  }
+
   function avisarVencimientos() {
     console.log("Datos crudos en rows:", rows);
 
     const now = new Date();
     const limit = new Date(now);
-    limit.setDate(limit.getDate() + 7); // margen de 7 días
+    limit.setDate(limit.getDate() + DAYS_AHEAD);
     limit.setHours(23, 59, 59, 999);
 
     const pendientes = rows.filter((row) => {
@@ -44,14 +53,17 @@ export function CobrosTable({ rows }: { rows: Cobro[] }) {
       const est = (row.estado || "").toLowerCase().trim();
       if (est === "cobrado") return false;
 
-      // 2. Si no hay cheques específicos, tomar los que no sean transferencia pura o que tengan fecha próxima
+      // 2. Detección normalizada: método de pago o presencia de datos de cheque
       const esCheque =
-        (row.metodo_pago || "").toUpperCase().includes("CHEQUE") ||
+        (row.metodo_pago || "").toLowerCase().includes("cheque") ||
         Boolean(row.cheque_numero) ||
         Boolean(row.cheque_id);
 
-      // Si querés que avise cualquier cobro pendiente próximo (sea cheque o cuota), dejá esto activo:
-      return esCheque;
+      if (!esCheque) return false;
+
+      // 3. Sólo avisar cheques sin fecha o próximos a vencer
+      const fecha = parseFechaLocal(row.cheque_fecha || row.fecha_estimada_cobro);
+      return !fecha || fecha <= limit;
     });
 
     console.log("Pendientes detectados:", pendientes);
@@ -128,7 +140,7 @@ export function CobrosTable({ rows }: { rows: Cobro[] }) {
               </thead>
               <tbody>
                 {rows.map((row) => {
-                  const estaCobrado = row.estado?.trim().toLowerCase() === "cobrado";
+                  const estaCobrado = (row.estado || "").toLowerCase().trim() === "cobrado";
                   return (
                     <tr key={row.id}>
                       <td>{row.obra_nombre}</td>
