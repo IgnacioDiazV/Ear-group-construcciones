@@ -15,7 +15,7 @@ export default async function LiquidacionesPage() {
   ]);
   const obras = (obrasData ?? []) as Obra[];
   const names = new Map(obras.map((obra) => [obra.id, obra.nombre]));
-  const rows = (liquidacionesData ?? []).map((row) => ({ ...row, obra_nombre: names.get(row.obra_id) ?? `Obra #${row.obra_id}` }));
+  const rows = (liquidacionesData ?? []).map((row) => ({ ...row, id: String(row.id), obra_nombre: names.get(row.obra_id) ?? `Obra #${row.obra_id}` }));
 
   return <main className={styles.page}><div className={styles.container}><header className={styles.header}><p className={styles.eyebrow}>EAR GROUP / ERP</p><h1>Liquidaciones y jornales</h1><p>Registro y archivo de planillas semanales de pago.</p></header><ContabilidadTabs /><section className={styles.card}><div className={styles.cardHeader}><h2>Registrar planilla semanal</h2><p>Adjuntá el Excel y vinculalo a una obra.</p></div><LiquidacionForm obras={obras} /></section><section className={styles.card}><div className={styles.cardHeader}><h2>Planillas guardadas</h2><p>Repositorio histórico de liquidaciones semanales.</p></div><LiquidacionesTable rows={rows} /></section></div></main>;
 }
