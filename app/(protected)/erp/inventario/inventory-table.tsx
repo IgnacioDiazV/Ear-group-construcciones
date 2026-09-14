@@ -1,17 +1,20 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { registrarDevolucion, transferirHerramienta, editarAsignacionHerramienta } from "./actions";
 import styles from "./inventario.module.css";
 
-type HerramientaActiva = { id: number; obra_id: number; descripcion_libre: string; cantidad: number; cantidad_devuelta: number; fecha_entrega: string; obra_nombre: string };
+type HerramientaActiva = { id: number; obra_id: number; descripcion_libre: string; cantidad: number; cantidad_devuelta: number; fecha_entrega: string; obra_nombre: string; tipo_item: 'herramienta' | 'material' };
 type ObraOption = { id: number; nombre: string };
 type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null };
+type FilterType = "all" | "herramientas" | "materiales";
 
 export function InventoryTable({ items, obras, depositos }: { items: HerramientaActiva[]; obras: ObraOption[]; depositos: DepositoOption[] }) {
   const router = useRouter();
   const [selectedObraId, setSelectedObraId] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<FilterType>("all");
   const [pendingId, setPendingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [transferItem, setTransferItem] = useState<HerramientaActiva | null>(null);
@@ -20,9 +23,28 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
   const [editDescripcion, setEditDescripcion] = useState("");
   const [editCantidad, setEditCantidad] = useState(1);
   const [editObraId, setEditObraId] = useState("");
-  const filteredItems = selectedObraId === "all"
-    ? items
-    : items.filter((item) => item.obra_id === Number(selectedObraId));
+  const [editTipoItem, setEditTipoItem] = useState<'herramienta' | 'material'>("herramienta");
+
+  const filteredItems = useMemo(() => {
+    let result = selectedObraId === "all"
+      ? items
+      : items.filter((item) => item.obra_id === Number(selectedObraId));
+
+    if (filterType !== "all") {
+      const tipoFilter = filterType === "herramientas" ? "herramienta" : "material";
+      result = result.filter((item) => item.tipo_item === tipoFilter);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((item) =>
+        item.descripcion_libre.toLowerCase().includes(query) ||
+        item.obra_nombre.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [items, selectedObraId, filterType, searchQuery]);
 
   function returnTool(item: HerramientaActiva) {
     const pendiente = item.cantidad - item.cantidad_devuelta;
@@ -71,6 +93,7 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
     setEditDescripcion(item.descripcion_libre);
     setEditCantidad(item.cantidad);
     setEditObraId(String(item.obra_id));
+    setEditTipoItem(item.tipo_item);
     setError("");
   }
 
@@ -83,6 +106,7 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
         descripcion_libre: editDescripcion,
         cantidad: editCantidad,
         obra_id: Number(editObraId),
+        tipo_item: editTipoItem,
       });
       setPendingId(null);
       if (result.error) {
@@ -94,9 +118,56 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
     });
   }
 
+  const typeFilters: { key: FilterType; label: string; count: number }[] = [
+    {
+      key: "all",
+      label: "Todos",
+      count: items.filter((item) => selectedObraId === "all" || item.obra_id === Number(selectedObraId)).length,
+    },
+    {
+      key: "herramientas",
+      label: "Herramientas",
+      count: items
+        .filter((item) => (selectedObraId === "all" || item.obra_id === Number(selectedObraId)) && item.tipo_item === "herramienta")
+        .length,
+    },
+    {
+      key: "materiales",
+      label: "Materiales/Consumibles",
+      count: items
+        .filter((item) => (selectedObraId === "all" || item.obra_id === Number(selectedObraId)) && item.tipo_item === "material")
+        .length,
+    },
+  ];
+
   if (items.length === 0) return <div className={styles.empty}>No hay herramientas activas asignadas a obras.</div>;
 
   return <div className={styles.tableWrapper}>
+    <div className={styles.searchBarContainer}>
+      <input
+        className={styles.searchInput}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        placeholder="Buscar por nombre de herramienta u obra..."
+        type="text"
+        value={searchQuery}
+      />
+      <span className={styles.searchIcon}>🔍</span>
+    </div>
+
+    <div className={styles.typeFilters}>
+      {typeFilters.map((filter) => (
+        <button
+          key={filter.key}
+          className={`${styles.typeFilterButton} ${filterType === filter.key ? styles.typeFilterButtonActive : ""}`}
+          onClick={() => setFilterType(filter.key)}
+          type="button"
+        >
+          {filter.label}
+          <span className={styles.typeFilterBadge}>{filter.count}</span>
+        </button>
+      ))}
+    </div>
+
     <div className={styles.tableToolbar}>
       <p className={styles.tableCount}>{filteredItems.length} {selectedObraId === "all" ? "asignaciones pendientes de devolución" : "asignaciones en esta obra"}.</p>
       <label className={styles.filterLabel} htmlFor="obra-filter">Filtrar por obra
@@ -107,7 +178,11 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
       </label>
     </div>
     {error && <div className={styles.error} role="alert">{error}</div>}
-    {filteredItems.length === 0 ? <div className={styles.empty}>No hay herramientas activas para la obra seleccionada.</div> : <table className={styles.table}><thead><tr><th>Herramienta</th><th>Obra destino</th><th>Saldo pendiente</th><th>Fecha de envío</th><th>Acción</th></tr></thead><tbody>{filteredItems.map((item) => <tr key={item.id}><td>{item.descripcion_libre}</td><td>{item.obra_nombre}</td><td>{item.cantidad - item.cantidad_devuelta} de {item.cantidad}</td><td>{item.fecha_entrega}</td><td><button className={styles.secondaryButton} disabled={pendingId === item.id} onClick={() => returnTool(item)} type="button">{pendingId === item.id ? "Guardando..." : "Marcar Devuelto"}</button>{" "}<button className={styles.secondaryButton} disabled={pendingId === item.id} onClick={() => openTransferModal(item)} type="button">Transferir</button>{" "}<button aria-label="Editar herramienta" className={styles.secondaryButton} disabled={pendingId === item.id} onClick={() => openEditModal(item)} type="button">✏️ Editar</button></td></tr>)}</tbody></table>}
+    {filteredItems.length === 0 ? <div className={styles.empty}>No hay herramientas activas para los filtros seleccionados.</div> : <table className={styles.table}><thead><tr><th>Herramienta</th><th>Obra destino</th><th>Saldo pendiente</th><th>Fecha de envío</th><th>Acción</th></tr></thead><tbody>{filteredItems.map((item) => <tr key={item.id}><td><span className={styles.itemBadge} data-type={item.tipo_item}>{item.tipo_item === "herramienta" ? "Herramienta" : "Material"}</span> {item.descripcion_libre}</td><td>{item.obra_nombre}</td><td>{item.cantidad - item.cantidad_devuelta} de {item.cantidad}</td><td>{item.fecha_entrega}</td><td><div className={styles.actionsContainer}>
+        <button aria-label="Marcar devuelto" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => returnTool(item)} title="Marcar Devuelto" type="button">✓</button>
+        <button aria-label="Transferir" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => openTransferModal(item)} title="Transferir" type="button">⭾</button>
+        <button aria-label="Editar" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => openEditModal(item)} title="Editar" type="button">✎</button>
+      </div></td></tr>)}</tbody></table>}
     {transferItem && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setTransferItem(null)} role="presentation">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150" onClick={(event) => event.stopPropagation()} role="dialog">
         <div>
@@ -141,6 +216,13 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
         <label className="block">
           <span className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1">Nombre / concepto</span>
           <input className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E2723]" onChange={(event) => setEditDescripcion(event.target.value)} value={editDescripcion} />
+        </label>
+        <label className="block">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1">Tipo de ítem</span>
+          <select className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E2723]" onChange={(event) => setEditTipoItem(event.target.value as 'herramienta' | 'material')} value={editTipoItem}>
+            <option value="herramienta">Herramienta</option>
+            <option value="material">Material/Consumible</option>
+          </select>
         </label>
         <label className="block">
           <span className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1">Cantidad</span>

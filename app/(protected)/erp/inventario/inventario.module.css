@@ -24,6 +24,25 @@
 .table th { padding: 12px 10px; background: #f4f1ef; color: #726560; font-size: 11px; text-transform: uppercase; }
 .table td { padding: 14px 10px; border-top: 1px solid #efebe9; color: #4a3f3a; }
 .table tr:hover td { background: #fcfaf9; }
+.searchBarContainer { position: relative; display: flex; align-items: center; padding: 0 0 16px; border-bottom: 1px solid #e0dcda; margin-bottom: 16px; }
+.searchInput { flex: 1; padding: 9px 12px 9px 36px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #3d1c14; font: inherit; font-size: 13px; }
+.searchInput::placeholder { color: #b9a8a1; }
+.searchInput:focus { border-color: #8d6e63; outline: 3px solid rgba(141, 110, 99, .15); }
+.searchIcon { position: absolute; left: 11px; font-size: 14px; color: #8d6e63; pointer-events: none; }
+.typeFilters { display: flex; align-items: center; gap: 8px; padding: 0 0 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.typeFilterButton { padding: 8px 14px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #4a3f3a; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.typeFilterButton:hover { border-color: #8d6e63; background: #faf8f7; }
+.typeFilterButtonActive { background: #3d1c14; color: #ffffff; border-color: #3d1c14; }
+.typeFilterBadge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: rgba(255, 255, 255, 0.2); font-size: 11px; font-weight: 700; }
+.typeFilterButtonActive .typeFilterBadge { background: rgba(255, 255, 255, 0.3); }
+.actionsContainer { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+.iconButton { padding: 8px; border: 1px solid #d3cec9; border-radius: 6px; background: #ffffff; color: #3d1c14; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; }
+.iconButton:hover:not(:disabled) { border-color: #8d6e63; background: #efebe9; transform: scale(1.05); }
+.iconButton:active:not(:disabled) { transform: scale(0.95); }
+.iconButton:disabled { cursor: wait; opacity: 0.6; }
+.itemBadge { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px; }
+.itemBadge[data-type="herramienta"] { background: #e3f2fd; color: #1565c0; }
+.itemBadge[data-type="material"] { background: #fff3e0; color: #e65100; }
 .error { margin: 16px 20px; padding: 11px 12px; border: 1px solid #d99b91; border-radius: 4px; background: #fbeae6; color: #8c3025; font-size: 13px; }
 .empty { padding: 42px 20px; color: #726560; text-align: center; }
 .modalBackdrop { position: fixed; z-index: 50; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.5); }

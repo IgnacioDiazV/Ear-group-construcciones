@@ -82,7 +82,7 @@ export async function registrarDevolucion(
 
 export async function editarAsignacionHerramienta(
   id: number,
-  cambios: { descripcion_libre: string; cantidad: number; obra_id: number },
+  cambios: { descripcion_libre: string; cantidad: number; obra_id: number; tipo_item: 'herramienta' | 'material' },
 ) {
   const descripcion = cambios.descripcion_libre.trim();
   if (!Number.isInteger(id) || !descripcion || !Number.isInteger(cambios.obra_id) || !(cambios.cantidad > 0)) {
@@ -94,6 +94,7 @@ export async function editarAsignacionHerramienta(
     descripcion_libre: descripcion,
     cantidad: cambios.cantidad,
     obra_id: cambios.obra_id,
+    tipo_item: cambios.tipo_item,
   }).eq("id", id);
 
   if (error) return { error: `No se pudo actualizar la herramienta: ${error.message}` };

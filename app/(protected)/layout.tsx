@@ -10,7 +10,6 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
           <span className={styles.logo}>EAR</span>
           <span className={styles.brandTitle}>EAR GROUP</span>
         </Link>
-        <div className={styles.activeProject}>Proyecto Activo: Torre Alvear - Fase 2 <span aria-hidden="true">▾</span></div>
         <div className={styles.topRight}>
           <span className={styles.syncStatus}><span aria-hidden="true">●</span> Servidor sincronizado</span>
           <span className={styles.userPill}>Admin: Usuario</span>

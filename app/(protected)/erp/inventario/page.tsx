@@ -5,13 +5,13 @@ import styles from "./inventario.module.css";
 
 type ObraOption = { id: number; nombre: string };
 type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null };
-type RawAsignacion = { id: number; obra_id: number; descripcion_libre: string; cantidad: number; cantidad_devuelta: number; fecha_entrega: string; fecha_devolucion: string | null };
+type RawAsignacion = { id: number; obra_id: number; descripcion_libre: string; cantidad: number; cantidad_devuelta: number; fecha_entrega: string; fecha_devolucion: string | null; tipo_item: 'herramienta' | 'material' };
 
 export default async function InventarioPage() {
   const supabase = await createSupabaseServerClient();
   const [{ data: obrasData, error: obrasError }, { data: asignacionesData, error: asignacionesError }, { data: depositosData }] = await Promise.all([
     supabase.from("obras").select("id, nombre, estado").order("nombre"),
-    (supabase.from("asignacion_herramientas") as unknown as { select: (columns: string) => { is: (column: string, value: null) => Promise<{ data: RawAsignacion[] | null; error: { message: string } | null }> } }).select("id, obra_id, descripcion_libre, cantidad, cantidad_devuelta, fecha_entrega, fecha_devolucion").is("fecha_devolucion", null),
+    (supabase.from("asignacion_herramientas") as unknown as { select: (columns: string) => { is: (column: string, value: null) => Promise<{ data: RawAsignacion[] | null; error: { message: string } | null }> } }).select("id, obra_id, descripcion_libre, cantidad, cantidad_devuelta, fecha_entrega, fecha_devolucion, tipo_item").is("fecha_devolucion", null),
     supabase.from("depositos").select("id, nombre, es_obrador").order("nombre"),
   ]);
 
