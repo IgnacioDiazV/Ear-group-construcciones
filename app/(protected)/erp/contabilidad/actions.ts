@@ -85,6 +85,14 @@ type ExpenseInsert = {
   tipo_comprobante: string | null;
 };
 
+type ExpenseUpdate = {
+  obra_id: number;
+  rubro: string;
+  descripcion: string;
+  precio_unitario: number;
+  fecha: string;
+};
+
 export async function cargarComprobante(_previousState: ExpenseActionState, formData: FormData): Promise<ExpenseActionState> {
   const obraId = Number(formData.get("obra_id"));
   const rubro = String(formData.get("rubro") ?? "").trim();
@@ -125,4 +133,40 @@ export async function cargarComprobante(_previousState: ExpenseActionState, form
   revalidatePath("/erp/contabilidad");
   revalidatePath(`/erp/obras/${obraId}`);
   return { success: "Comprobante registrado correctamente." };
+}
+
+export async function actualizarGasto(_prevState: ExpenseActionState, formData: FormData): Promise<ExpenseActionState> {
+  const id = Number(formData.get("id"));
+  const obraId = Number(formData.get("obra_id"));
+  const rubro = String(formData.get("rubro") ?? "").trim();
+  const descripcion = String(formData.get("descripcion") ?? "").trim();
+  const precioUnitario = Number(formData.get("precio_unitario"));
+  const fecha = String(formData.get("fecha") ?? "");
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return { error: "El gasto seleccionado no es válido." };
+  }
+
+  if (!Number.isInteger(obraId) || !rubro || !descripcion || !Number.isFinite(precioUnitario) || !fecha) {
+    return { error: "Completá obra, rubro, descripción, importe y fecha." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: obra } = await supabase.from("obras").select("nombre").eq("id", obraId).maybeSingle();
+  if (!obra) return { error: "La obra seleccionada no existe." };
+
+  const updateData: ExpenseUpdate = {
+    obra_id: obraId,
+    rubro,
+    descripcion,
+    precio_unitario: precioUnitario,
+    fecha,
+  };
+
+  const { error } = await supabase.from("gastos_obra").update(updateData).eq("id", id);
+  if (error) return { error: `No se pudo actualizar el gasto: ${error.message}` };
+
+  revalidatePath("/erp/contabilidad");
+  revalidatePath(`/erp/obras/${obraId}`);
+  return { success: "Gasto actualizado correctamente." };
 }
