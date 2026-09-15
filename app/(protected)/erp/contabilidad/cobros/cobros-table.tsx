@@ -2,11 +2,12 @@
 
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { marcarComoCobrado } from "./actions";
+import { marcarComoCobrado, eliminarCobro, actualizarCobro } from "./actions";
 import styles from "./cobros.module.css";
 
 type Cobro = {
   id: number;
+  obra_id: number;
   obra_nombre: string;
   descripcion: string;
   monto: number;
@@ -23,10 +24,15 @@ type Cobro = {
   cheque_fecha?: string;
 };
 
-export function CobrosTable({ rows }: { rows: Cobro[] }) {
+type Obra = { id: number; nombre: string };
+
+export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[] }) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [editingCobro, setEditingCobro] = useState<Cobro | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Cobro>>({});
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const WHATSAPP_PHONE = "5493816958566";
   const DAYS_AHEAD = 5;
@@ -106,6 +112,76 @@ export function CobrosTable({ rows }: { rows: Cobro[] }) {
     });
   }
 
+  function openEditModal(cobro: Cobro) {
+    setEditingCobro(cobro);
+    setEditFormData({
+      id: cobro.id,
+      obra_id: cobro.obra_id,
+      descripcion: cobro.descripcion,
+      monto: cobro.monto,
+      numero_cuota: cobro.numero_cuota,
+      total_cuotas: cobro.total_cuotas,
+      fecha_estimada_cobro: cobro.fecha_estimada_cobro,
+      estado: cobro.estado,
+      cheque_id: cobro.cheque_id,
+      cheque_banco: cobro.cheque_banco,
+      cheque_numero: cobro.cheque_numero,
+      cheque_fecha: cobro.cheque_fecha,
+    });
+  }
+
+  function closeEditModal() {
+    setEditingCobro(null);
+    setEditFormData({});
+  }
+
+  async function saveEditedCobro() {
+    if (!editingCobro || !editFormData.id) return;
+    setEditingId(editingCobro.id);
+    setError("");
+
+    const formData = new FormData();
+    formData.append("id", String(editFormData.id));
+    formData.append("obra_id", String(editFormData.obra_id ?? editingCobro.obra_id));
+    formData.append("descripcion", String(editFormData.descripcion ?? editingCobro.descripcion));
+    formData.append("monto", String(editFormData.monto ?? editingCobro.monto));
+    formData.append("numero_cuota", String(editFormData.numero_cuota ?? editingCobro.numero_cuota ?? ""));
+    formData.append("total_cuotas", String(editFormData.total_cuotas ?? editingCobro.total_cuotas ?? ""));
+    formData.append("fecha_estimada_cobro", String(editFormData.fecha_estimada_cobro ?? editingCobro.fecha_estimada_cobro ?? ""));
+    formData.append("estado", String(editFormData.estado ?? editingCobro.estado ?? "pendiente"));
+    
+    if (editFormData.cheque_id ?? editingCobro.cheque_id) {
+      formData.append("cheque_id", String(editFormData.cheque_id ?? editingCobro.cheque_id));
+      formData.append("banco", String(editFormData.cheque_banco ?? editingCobro.cheque_banco ?? ""));
+      formData.append("numero_cheque", String(editFormData.cheque_numero ?? editingCobro.cheque_numero ?? ""));
+      formData.append("fecha_pago_diferido", String(editFormData.cheque_fecha ?? editingCobro.cheque_fecha ?? ""));
+    }
+
+    startTransition(async () => {
+      const result = await actualizarCobro({}, formData);
+      setEditingId(null);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      closeEditModal();
+      router.refresh();
+    });
+  }
+
+  function deleteCobro(cobro: Cobro) {
+    if (!window.confirm(`¿Eliminar el cobro de ${cobro.descripcion}?`)) return;
+    setError("");
+    startTransition(async () => {
+      const result = await eliminarCobro(cobro.id);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   return (
     <>
       {error && <div className={styles.error} role="alert">{error}</div>}
@@ -170,18 +246,44 @@ export function CobrosTable({ rows }: { rows: Cobro[] }) {
                         </span>
                       </td>
                       <td>
-                        {!estaCobrado ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                          {!estaCobrado ? (
+                            <button
+                              className={styles.actionButton}
+                              disabled={pendingId === row.id}
+                              onClick={() => cobrar(row)}
+                              type="button"
+                            >
+                              {pendingId === row.id ? "Guardando..." : "Marcar cobrado"}
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '13px', color: '#6b5b54', fontWeight: 500 }}>Completo</span>
+                          )}
                           <button
-                            className={styles.actionButton}
-                            disabled={pendingId === row.id}
-                            onClick={() => cobrar(row)}
+                            aria-label="Editar cobro"
+                            className={styles.iconButton}
+                            onClick={() => openEditModal(row)}
+                            title="Editar cobro"
                             type="button"
                           >
-                            {pendingId === row.id ? "Guardando..." : "Marcar cobrado"}
+                            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
+                            </svg>
                           </button>
-                        ) : (
-                          "Completo"
-                        )}
+                          <button
+                            aria-label="Eliminar cobro"
+                            className={styles.iconButton}
+                            onClick={() => deleteCobro(row)}
+                            title="Eliminar cobro"
+                            type="button"
+                            style={{ color: '#d32f2f' }}
+                          >
+                            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" style={{ fill: 'currentColor' }}>
+                              <path d="M6 4v2h12V4H6zm1 3h10v10c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2V7zm2 2v6h2V9H9zm4 0v6h2V9h-2z" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -190,6 +292,212 @@ export function CobrosTable({ rows }: { rows: Cobro[] }) {
             </table>
           </div>
         </>
+      )}
+      
+      {/* Modal de Edición */}
+      {editingCobro && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={closeEditModal}
+          role="presentation"
+        >
+          <div
+            aria-label={`Editar cobro: ${editingCobro.descripcion}`}
+            aria-modal="true"
+            role="dialog"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '12px',
+              maxWidth: '500px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <div
+              style={{
+                padding: '20px',
+                borderBottom: '1px solid #e0d5d0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3 style={{ margin: 0, color: '#3E2723', fontSize: '16px', fontWeight: 700 }}>Editar Cobro</h3>
+              <button
+                aria-label="Cerrar"
+                onClick={closeEditModal}
+                type="button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  color: '#8b7b76',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', minHeight: 0 }}>
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Obra
+                <select
+                  value={editFormData.obra_id ?? editingCobro.obra_id}
+                  onChange={(e) => setEditFormData({ ...editFormData, obra_id: Number(e.target.value) })}
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                >
+                  {obras.map((obra) => (
+                    <option key={obra.id} value={obra.id}>
+                      {obra.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Descripción
+                <input
+                  type="text"
+                  value={editFormData.descripcion ?? editingCobro.descripcion}
+                  onChange={(e) => setEditFormData({ ...editFormData, descripcion: e.target.value })}
+                  placeholder="Concepto del cobro"
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Monto
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editFormData.monto ?? editingCobro.monto}
+                  onChange={(e) => setEditFormData({ ...editFormData, monto: Number(e.target.value) })}
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Cuota
+                <input
+                  type="number"
+                  min="1"
+                  value={editFormData.numero_cuota ?? editingCobro.numero_cuota ?? ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, numero_cuota: e.target.value ? Number(e.target.value) : null })}
+                  placeholder="Número de cuota (opcional)"
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Total de cuotas
+                <input
+                  type="number"
+                  min="1"
+                  value={editFormData.total_cuotas ?? editingCobro.total_cuotas ?? ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, total_cuotas: e.target.value ? Number(e.target.value) : null })}
+                  placeholder="Total de cuotas (opcional)"
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Fecha de cobro estimada
+                <input
+                  type="date"
+                  value={editFormData.fecha_estimada_cobro ?? editingCobro.fecha_estimada_cobro ?? ""}
+                  onChange={(e) => setEditFormData({ ...editFormData, fecha_estimada_cobro: e.target.value })}
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                Estado
+                <select
+                  value={editFormData.estado ?? editingCobro.estado ?? "pendiente"}
+                  onChange={(e) => setEditFormData({ ...editFormData, estado: e.target.value })}
+                  style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                >
+                  <option value="pendiente">Pendiente</option>
+                  <option value="cobrado">Cobrado</option>
+                </select>
+              </label>
+
+              {(editFormData.cheque_id ?? editingCobro.cheque_id) && (
+                <>
+                  <hr style={{ margin: '12px 0', border: 'none', borderTop: '1px solid #d3cec9' }} />
+                  <p style={{ margin: '0 0 12px 0', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>Datos del Cheque</p>
+
+                  <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                    Banco
+                    <input
+                      type="text"
+                      value={editFormData.cheque_banco ?? editingCobro.cheque_banco ?? ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, cheque_banco: e.target.value })}
+                      placeholder="Nombre del banco"
+                      style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                    Número de cheque
+                    <input
+                      type="text"
+                      value={editFormData.cheque_numero ?? editingCobro.cheque_numero ?? ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, cheque_numero: e.target.value })}
+                      placeholder="Número del cheque"
+                      style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'grid', gap: '5px', color: '#4a3f3a', fontSize: '12px', fontWeight: 700 }}>
+                    Fecha de pago diferido
+                    <input
+                      type="date"
+                      value={editFormData.cheque_fecha ?? editingCobro.cheque_fecha ?? ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, cheque_fecha: e.target.value })}
+                      style={{ padding: '9px', border: '1px solid #d3cec9', borderRadius: '4px', background: '#fff', color: '#2c2420', font: 'inherit', fontSize: '13px' }}
+                    />
+                  </label>
+                </>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                <button
+                  onClick={closeEditModal}
+                  type="button"
+                  style={{ border: '1px solid #d3cec9', borderRadius: '4px', padding: '10px 15px', background: '#fff', color: '#2c2420', cursor: 'pointer', font: 'inherit', fontSize: '13px', fontWeight: 700 }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={saveEditedCobro}
+                  disabled={editingId === editingCobro.id}
+                  type="button"
+                  style={{ border: 0, borderRadius: '4px', padding: '10px 15px', background: '#3E2723', color: '#fff', cursor: editingId === editingCobro.id ? 'wait' : 'pointer', font: 'inherit', fontSize: '13px', fontWeight: 700, opacity: editingId === editingCobro.id ? 0.6 : 1 }}
+                >
+                  {editingId === editingCobro.id ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
