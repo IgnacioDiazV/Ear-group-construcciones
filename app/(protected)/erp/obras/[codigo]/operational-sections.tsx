@@ -60,15 +60,29 @@ export default async function OperationalSections({ obra }: { obra: Obra }) {
   const totalExpenses = related.expenses.data.reduce((total, expense) => total + (expense.subtotal ?? expense.precio_unitario), 0);
   const pendingAdvances = related.advances.data.filter((advance) => !["pagado", "cobrado", "cancelado"].includes(advance.estado?.toLowerCase() ?? ""));
   const pendingChecks = related.checks.data.filter((check) => !["pagado", "cobrado", "cancelado"].includes(check.estado?.toLowerCase() ?? ""));
-  const approvedBudget = obra.presupuesto_base ?? 0;
-  const consumedPercentage = approvedBudget > 0 ? Math.min(100, Math.round((totalExpenses / approvedBudget) * 100)) : 0;
-  const remainingBudget = Math.max(0, approvedBudget - totalExpenses);
+  
+  // Calcular totales de anticipos
+  const totalCobrado = related.advances.data
+    .filter((advance) => advance.estado?.toLowerCase() === "cobrado")
+    .reduce((total, advance) => total + (advance.monto ?? 0), 0);
+  
+  const totalPendiente = related.advances.data
+    .filter((advance) => advance.estado?.toLowerCase() === "pendiente")
+    .reduce((total, advance) => total + (advance.monto ?? 0), 0);
+  
+  const cobradosCount = related.advances.data.filter((advance) => advance.estado?.toLowerCase() === "cobrado").length;
+  
+  const presupuestoBase = obra.presupuesto_base ?? 0;
+  const totalEjecutado = totalExpenses;
+  const saldoRestanteDisponible = Math.max(0, presupuestoBase - totalEjecutado);
+  const consumedPercentage = presupuestoBase > 0 ? Math.min(100, Math.round((totalEjecutado / presupuestoBase) * 100)) : 0;
 
   return <>
     <section className={styles.financialMetrics} aria-label="Resumen financiero">
-      <div className={styles.financialMetric}><p>Presupuesto aprobado</p><strong>{formatCurrency(approvedBudget, obra.moneda_base ?? "ARS")}</strong><span>Base vigente de la obra</span></div>
-      <div className={styles.financialMetric}><p>Total ejecutado / pagado</p><strong>{formatCurrency(totalExpenses, obra.moneda_base ?? "ARS")}</strong><span>Según gastos imputados</span></div>
-      <div className={styles.financialMetric}><p>Saldo restante disponible</p><strong>{formatCurrency(remainingBudget, obra.moneda_base ?? "ARS")}</strong><span>{consumedPercentage}% de consumo del presupuesto</span><div className={styles.progress}><span className={progressClass(consumedPercentage)} /></div></div>
+      <div className={`${styles.financialMetric} flex flex-col justify-between`}><div><p>Presupuesto aprobado</p><strong>{formatCurrency(presupuestoBase, obra.moneda_base ?? "ARS")}</strong></div><span>Base vigente de la obra</span></div>
+      <div className={`${styles.financialMetric} flex flex-col justify-between`}><div><p>Total cobrado</p><strong>{formatCurrency(totalCobrado, obra.moneda_base ?? "ARS")}</strong></div><span className="mt-4">{cobradosCount} cuota{cobradosCount !== 1 ? "s" : ""} cobrada{cobradosCount !== 1 ? "s" : ""}</span></div>
+      <div className={`${styles.financialMetric} flex flex-col justify-between`}><div><p>Total ejecutado / pagado</p><strong>{formatCurrency(totalEjecutado, obra.moneda_base ?? "ARS")}</strong></div><span className="mt-4">Según gastos imputados</span></div>
+      <div className={`${styles.financialMetric} flex flex-col justify-between`}><div><p>Saldo restante disponible</p><strong>{formatCurrency(saldoRestanteDisponible, obra.moneda_base ?? "ARS")}</strong></div><div className="mt-4"><div className="flex items-center justify-between mb-2"><span className="text-sm text-neutral-600">Consumo del presupuesto</span><span className="font-bold text-sm text-neutral-900">{consumedPercentage}%</span></div><div className="w-full bg-stone-100 border border-neutral-200/60 h-2 rounded-full overflow-hidden"><div className="bg-[#3E2723] h-full transition-all duration-300" style={{ width: `${Math.min(Math.max(consumedPercentage, 0), 100)}%` }} /></div></div></div>
     </section>
 
     <div className={styles.contentGrid}>

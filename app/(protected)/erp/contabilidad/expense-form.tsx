@@ -13,13 +13,22 @@ export function ExpenseForm({ obras }: { obras: { id: number; nombre: string }[]
   const [preview, setPreview] = useState("");
   const [reading, setReading] = useState(false);
   const [ocrError, setOcrError] = useState("");
-  const [fields, setFields] = useState({ proveedor: "", tipo: "Ticket", fecha: new Date().toISOString().slice(0, 10), rubro: "", descripcion: "", importe: "" });
+  const [fields, setFields] = useState({ obraId: "", proveedor: "", tipo: "Ticket", fecha: new Date().toISOString().slice(0, 10), rubro: "", descripcion: "", importe: "" });
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
+  useEffect(() => {
+    if (state.success) {
+      setPreview("");
+      setOcrError("");
+      setFields((prev) => ({ obraId: prev.obraId, proveedor: "", tipo: "Ticket", fecha: prev.fecha, rubro: "", descripcion: "", importe: "" }));
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }, [state.success]);
+
   function applyOCR(data: ComprobanteOCR) {
-    setFields({ proveedor: data.proveedor, tipo: data.tipo_comprobante, fecha: data.fecha || new Date().toISOString().slice(0, 10), rubro: data.rubro_sugerido, descripcion: data.descripcion, importe: data.total ? String(data.total) : "" });
+    setFields((prev) => ({ obraId: prev.obraId, proveedor: data.proveedor, tipo: data.tipo_comprobante, fecha: data.fecha || new Date().toISOString().slice(0, 10), rubro: data.rubro_sugerido, descripcion: data.descripcion, importe: data.total ? String(data.total) : "" }));
   }
 
   async function selectFile(file: File | undefined) {
@@ -47,7 +56,7 @@ export function ExpenseForm({ obras }: { obras: { id: number; nombre: string }[]
       {state.success && <div className={styles.success} role="status">{state.success}</div>}
     </div>
     <div className={smartStyles.confirmFields}><div className={smartStyles.smartHeading}><span className={smartStyles.scanIcon}>✓</span><div><h2>Confirmar imputación</h2><p>Editá cualquier dato antes de guardar.</p></div></div>
-      <label>Obra<select defaultValue="" name="obra_id" required><option disabled value="">Seleccioná una obra</option>{obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}</select></label>
+      <label>Obra<select name="obra_id" onChange={(event) => setFields({ ...fields, obraId: event.target.value })} required value={fields.obraId}><option value="">Seleccioná una obra</option>{obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}</select></label>
     <div className={styles.formRow}><label>Proveedor / Emisor<input name="proveedor" onChange={(event) => setFields({ ...fields, proveedor: event.target.value })} placeholder="Detectado por OCR" value={fields.proveedor} /></label><label>Tipo<select name="tipo_comprobante" onChange={(event) => setFields({ ...fields, tipo: event.target.value })} value={fields.tipo}><option>Factura A</option><option>Factura B</option><option>Factura C</option><option>Ticket</option><option>Vale</option></select></label></div>
     <div className={styles.formRow}><label>Fecha<input name="fecha" onChange={(event) => setFields({ ...fields, fecha: event.target.value })} required type="date" value={fields.fecha} /></label><label>Rubro<input name="rubro" onChange={(event) => setFields({ ...fields, rubro: event.target.value })} placeholder="Materiales, combustible..." required value={fields.rubro} /></label></div>
     <label>Descripción<input name="descripcion" onChange={(event) => setFields({ ...fields, descripcion: event.target.value })} placeholder="Concepto del comprobante" required value={fields.descripcion} /></label>

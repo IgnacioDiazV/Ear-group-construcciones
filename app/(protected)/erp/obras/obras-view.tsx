@@ -162,7 +162,7 @@ export function ObrasView({ obras }: { obras: ObraResumen[] }) {
                     <div><dt>Herramientas pendientes</dt><dd>{obra.herramientas_asignadas}</dd></div>
                     <div><dt>Ubicación</dt><dd>{obra.direccion ?? "Sin dirección cargada"}</dd></div>
                   </dl>
-                  <Link className={styles.detailButton} href={`/erp/obras/${obra.id}`}>Ver detalles</Link>
+                  <Link className={styles.detailButton} href={`/erp/obras/${obra.codigo}`}>Ver detalles</Link>
                 </article>
               ))}
             </section>
@@ -171,7 +171,7 @@ export function ObrasView({ obras }: { obras: ObraResumen[] }) {
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>Código / obra</th><th>Estado</th><th>Inicio</th><th>Cierre estimado</th><th>Presupuesto</th></tr></thead>
-                  <tbody>{obras.map((obra) => <tr key={`row-${obra.id}`}><td><Link className={styles.tableName} href={`/erp/obras/${obra.id}`}>{obra.nombre}</Link><div className={styles.code}>{obra.codigo}</div></td><td><StatusBadge status={obra.estado} /></td><td>{formatDate(obra.fecha_inicio)}</td><td>{formatDate(obra.fecha_fin_estimada)}</td><td>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</td></tr>)}</tbody>
+                  <tbody>{obras.map((obra) => <tr key={`row-${obra.id}`}><td><Link className={styles.tableName} href={`/erp/obras/${obra.codigo}`}>{obra.nombre}</Link><div className={styles.code}>{obra.codigo}</div></td><td><StatusBadge status={obra.estado} /></td><td>{formatDate(obra.fecha_inicio)}</td><td>{formatDate(obra.fecha_fin_estimada)}</td><td>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</td></tr>)}</tbody>
                 </table>
               </div>
             </section>

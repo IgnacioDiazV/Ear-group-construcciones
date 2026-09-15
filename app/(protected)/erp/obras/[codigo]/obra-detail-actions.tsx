@@ -12,7 +12,7 @@ export function ObraDetailActions({ obra }: { obra: Obra }) {
 
   return (
     <>
-      <button className={styles.primaryButton} onClick={() => setEditing(true)} type="button">Editar información</button>
+      <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3E2723] text-white hover:bg-[#2C1B17] text-sm font-medium transition" onClick={() => setEditing(true)} type="button">Editar información</button>
       {isEditing && <EditObraForm obra={obra} onClose={() => setEditing(false)} />}
     </>
   );
