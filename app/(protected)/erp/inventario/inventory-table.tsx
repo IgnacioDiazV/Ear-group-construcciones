@@ -71,13 +71,11 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
 
   function confirmarTransferencia() {
     if (!transferItem || !transferDestino) return;
-    const [tipo, rawId] = transferDestino.split(":");
-    const destinoObraId = tipo === "obra" ? Number(rawId) : null;
-    const depositoDestinoId = tipo === "deposito" ? Number(rawId) : null;
+    const destinoObraId = Number(transferDestino);
     setPendingId(transferItem.id);
     setError("");
     startTransition(async () => {
-      const result = await transferirHerramienta(transferItem.id, destinoObraId, depositoDestinoId);
+      const result = await transferirHerramienta(transferItem.id, destinoObraId, null);
       setPendingId(null);
       if (result.error) {
         setError(result.error);
@@ -133,7 +131,7 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
     },
     {
       key: "materiales",
-      label: "Materiales/Consumibles",
+      label: "Materiales",
       count: items
         .filter((item) => (selectedObraId === "all" || item.obra_id === Number(selectedObraId)) && item.tipo_item === "material")
         .length,
@@ -193,12 +191,7 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
           <span className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1">Destino</span>
           <select className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E2723]" onChange={(event) => setTransferDestino(event.target.value)} value={transferDestino}>
             <option value="">Seleccioná un destino</option>
-            <optgroup label="Obras">
-              {obras.filter((obra) => obra.id !== transferItem.obra_id).map((obra) => <option key={`obra:${obra.id}`} value={`obra:${obra.id}`}>{obra.nombre}</option>)}
-            </optgroup>
-            <optgroup label="Depósitos">
-              {depositos.map((deposito) => <option key={`deposito:${deposito.id}`} value={`deposito:${deposito.id}`}>{deposito.nombre}{deposito.es_obrador ? " (Galpón central)" : ""}</option>)}
-            </optgroup>
+            {obras.filter((obra) => obra.id !== transferItem.obra_id).map((obra) => <option key={obra.id} value={String(obra.id)}>{obra.nombre}</option>)}
           </select>
         </label>
         <div className="flex justify-end gap-3 pt-2">
