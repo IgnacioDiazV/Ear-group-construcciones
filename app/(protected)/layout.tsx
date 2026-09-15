@@ -1,5 +1,6 @@
 import styles from "./erp-layout.module.css";
 import Link from "next/link";
+import Image from "next/image";
 import { ErpNavigation } from "./navigation";
 
 export default function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -7,8 +8,8 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
     <div className={styles.erpShell}>
       <header className={styles.topbar}>
         <Link className={styles.brand} href="/erp/obras">
-          <span className={styles.logo}>EAR</span>
-          <span className={styles.brandTitle}>EAR GROUP</span>
+          <Image alt="EAR Group" className={styles.logoImage} height={40} priority src="/logo-ear.svg" width={40} />
+          <span className={styles.brandTitle}>EAR GROUP CONSTRUCCIONES</span>
         </Link>
         <div className={styles.topRight}>
           <span className={styles.syncStatus}><span aria-hidden="true">●</span> Servidor sincronizado</span>

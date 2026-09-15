@@ -12,6 +12,20 @@
   margin-bottom: 48px;
 }
 
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.headerLogo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
 .title {
   font-size: 28px;
   font-weight: 700;

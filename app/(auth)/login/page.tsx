@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./login.module.css";
 
@@ -39,7 +40,7 @@ export default function LoginPage() {
     <main className={styles.page}>
       <section className={styles.loginPanel} aria-labelledby="login-title">
         <div className={styles.brand}>
-          <span className={styles.logo}>EAR</span>
+          <Image alt="EAR Group" height={56} priority src="/logo-ear.svg" width={56} />
           <span className={styles.brandName}>EAR GROUP</span>
         </div>
 

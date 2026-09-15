@@ -9,10 +9,21 @@
 .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #2b2320; font: inherit; font-size: 13px; }
 .field textarea { min-height: 110px; resize: vertical; }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: #8d6e63; outline: 3px solid rgba(141, 110, 99, 0.16); }
-.submitButton { justify-self: center; min-width: 230px; margin-top: 5px; padding: 12px 20px; border: 0; border-radius: 4px; background: #3d1c14; color: #ffffff; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
+.field input:disabled, .field select:disabled, .field textarea:disabled { background-color: #f5f2f0; cursor: not-allowed; opacity: 0.7; }
+.submitButton { justify-self: center; min-width: 230px; margin-top: 5px; padding: 12px 20px; border: 0; border-radius: 4px; background: #3d1c14; color: #ffffff; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .submitButton:hover { background: #5d291e; }
 .submitButton:disabled { cursor: wait; opacity: 0.65; }
 .alertError, .alertSuccess { padding: 11px 13px; border-radius: 4px; font-size: 13px; text-align: left; }
 .alertError { border: 1px solid #d99b91; background: #fbeae6; color: #8c3025; }
 .alertSuccess { border: 1px solid #a8cbaa; background: #e8f5e9; color: #2e7d32; }
-@media (max-width: 600px) { .formRow { grid-template-columns: 1fr; } .submitButton { width: 100%; } }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #ffffff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.confirmationContainer { display: flex; align-items: center; justify-content: center; min-height: 400px; }
+.confirmationContent { max-width: 500px; text-align: center; animation: slideIn 0.4s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.checkmarkIcon { width: 80px; height: 80px; margin: 0 auto 20px; background: #2e7d32; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 48px; }
+.confirmationTitle { margin: 0 0 12px; color: #2b2320; font-size: 24px; font-weight: 700; }
+.confirmationMessage { margin: 0 0 24px; color: #4a3f3a; font-size: 14px; line-height: 1.6; }
+.newQueryButton { padding: 12px 24px; border: 1px solid #3d1c14; border-radius: 4px; background: transparent; color: #3d1c14; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; transition: all 0.2s ease; }
+.newQueryButton:hover { background: #3d1c14; color: #ffffff; }
+@media (max-width: 600px) { .formRow { grid-template-columns: 1fr; } .submitButton { width: 100%; } .checkmarkIcon { width: 60px; height: 60px; font-size: 36px; } .confirmationTitle { font-size: 20px; } }

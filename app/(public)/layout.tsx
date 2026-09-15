@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./public-layout.module.css";
 
 export default function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -6,7 +7,7 @@ export default function PublicLayout({ children }: Readonly<{ children: React.Re
     <div className={styles.siteShell}>
       <header className={styles.topbar}>
         <Link className={styles.brand} href="/">
-          <span className={styles.logo}>EAR</span>
+          <Image alt="EAR Group" className="h-9 w-auto object-contain" height={49} priority src="/logo-ear.svg" width={35} />
           <span className={styles.brandTitle}>EAR GROUP CONSTRUCCIONES</span>
         </Link>
 
@@ -23,9 +24,12 @@ export default function PublicLayout({ children }: Readonly<{ children: React.Re
 
       <footer className={styles.footer}>
         <div className={styles.footerGrid}>
-          <div>
-            <h2>EAR GROUP CONSTRUCCIONES</h2>
-            <p>Tu socio en la construcción. Diseño, cálculo y ejecución de obra integral.</p>
+          <div className={styles.footerBrand}>
+            <Image alt="EAR Group" className={styles.footerLogo} height={40} src="/logo-ear2.svg" width={40} />
+            <div>
+              <h2>EAR GROUP CONSTRUCCIONES</h2>
+              <p>Tu socio en la construcción. Diseño, cálculo y ejecución de obra integral.</p>
+            </div>
           </div>
           <div>
             <h3>Enlaces</h3>

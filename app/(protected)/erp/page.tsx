@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./erp-welcome.module.css";
 
 const modules = [
@@ -33,10 +34,15 @@ export default function ErpWelcomePage() {
     <main className={styles.page}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Sistema de Gestión ERP</h1>
-          <p className={styles.subtitle}>
-            Plataforma integral para la administración de obras, inventario, contabilidad y personal.
-          </p>
+          <div className={styles.headerTop}>
+            <Image alt="EAR Group" className={styles.headerLogo} height={48} src="/logo-ear.svg" width={48} />
+            <div>
+              <h1 className={styles.title}>Sistema de Gestión ERP</h1>
+              <p className={styles.subtitle}>
+                Plataforma integral para la administración de obras, inventario, contabilidad y personal.
+              </p>
+            </div>
+          </div>
         </header>
 
         <section className={styles.gridSection}>

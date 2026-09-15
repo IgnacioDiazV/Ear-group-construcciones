@@ -18,6 +18,12 @@
   background: #ffffff;
 }
 
+@media (min-width: 768px) {
+  .topbar {
+    height: 80px;
+  }
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -27,14 +33,16 @@
   text-decoration: none;
 }
 
-.logo {
-  padding: 7px 10px;
-  border-radius: 4px;
-  background: #3d1c14;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 1px;
+.logoImage {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .logoImage {
+    height: 40px;
+  }
 }
 
 .brandTitle {
@@ -81,6 +89,12 @@
 .mainContainer {
   display: flex;
   min-height: calc(100vh - 64px);
+}
+
+@media (min-width: 768px) {
+  .mainContainer {
+    min-height: calc(100vh - 80px);
+  }
 }
 
 .sidebar {
