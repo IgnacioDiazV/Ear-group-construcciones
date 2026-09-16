@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-type HerramientaItem = { cantidad: number; nombre: string };
+type HerramientaItem = { cantidad: number; nombre: string; tipo: "herramienta" | "material" };
 type AsignacionPayload = {
   obra_id: number;
   descripcion_libre: string;
@@ -10,6 +10,7 @@ type AsignacionPayload = {
   cantidad_devuelta: number;
   fecha_entrega: string;
   estado_herramienta: string;
+  tipo_item?: "herramienta" | "material";
 };
 
 type AsignacionTable = {
@@ -45,6 +46,7 @@ export async function registrarEnvioHerramientas({
       cantidad_devuelta: 0,
       fecha_entrega,
       estado_herramienta: "operativa",
+      tipo_item: item.tipo,
     }));
 
   if (payload.length === 0) return { error: "No hay herramientas válidas para registrar." };

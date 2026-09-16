@@ -7,7 +7,7 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
   return (
     <div className={styles.erpShell}>
       <header className={styles.topbar}>
-        <Link className={styles.brand} href="/erp/obras">
+        <Link className={styles.brand} href="/erp">
           <Image alt="EAR Group" className={styles.logoImage} height={40} priority src="/logo-ear.svg" width={40} />
           <span className={styles.brandTitle}>EAR GROUP CONSTRUCCIONES</span>
         </Link>

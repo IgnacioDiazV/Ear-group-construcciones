@@ -1,5 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import { 
+  Building2, 
+  Boxes, 
+  Receipt, 
+  Users, 
+  ArrowRight 
+} from "lucide-react";
 import styles from "./erp-welcome.module.css";
 
 const modules = [
@@ -7,25 +14,25 @@ const modules = [
     href: "/erp/obras",
     title: "Obras y Proyectos",
     description: "Estados, presupuestos y seguimiento de obras",
-    icon: "▣",
+    icon: Building2,
   },
   {
     href: "/erp/inventario",
     title: "Inventario y Herramientas",
     description: "Control de stock, galpones y transferencias",
-    icon: "⌂",
+    icon: Boxes,
   },
   {
     href: "/erp/contabilidad",
     title: "Contabilidad y Caja",
     description: "Liquidaciones semanales, gastos y cheques",
-    icon: "▤",
+    icon: Receipt,
   },
   {
     href: "/erp/rrhh",
     title: "Personal y Asistencia",
     description: "Partes diarios y control horario",
-    icon: "♙",
+    icon: Users,
   },
 ];
 
@@ -37,7 +44,7 @@ export default function ErpWelcomePage() {
           <div className={styles.headerTop}>
             <Image alt="EAR Group" className={styles.headerLogo} height={48} src="/logo-ear.svg" width={48} />
             <div>
-              <h1 className={styles.title}>Sistema de Gestión ERP</h1>
+              <h1 className={styles.title}>Sistema de Gestión </h1>
               <p className={styles.subtitle}>
                 Plataforma integral para la administración de obras, inventario, contabilidad y personal.
               </p>
@@ -47,14 +54,22 @@ export default function ErpWelcomePage() {
 
         <section className={styles.gridSection}>
           <div className={styles.grid}>
-            {modules.map((module) => (
-              <Link href={module.href} key={module.href} className={styles.card}>
-                <div className={styles.cardIcon}>{module.icon}</div>
-                <h2 className={styles.cardTitle}>{module.title}</h2>
-                <p className={styles.cardDescription}>{module.description}</p>
-                <div className={styles.cardArrow}>→</div>
-              </Link>
-            ))}
+            {modules.map((module) => {
+              const IconComponent = module.icon;
+
+              return (
+                <Link href={module.href} key={module.href} className={styles.card}>
+                  <div className={styles.cardIcon}>
+                    <IconComponent size={28} strokeWidth={1.75} />
+                  </div>
+                  <h2 className={styles.cardTitle}>{module.title}</h2>
+                  <p className={styles.cardDescription}>{module.description}</p>
+                  <div className={styles.cardArrow}>
+                    <ArrowRight size={18} />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>

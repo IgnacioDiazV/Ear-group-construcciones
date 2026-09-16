@@ -3,7 +3,7 @@
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registrarEnvioHerramientas } from "./actions";
-import { parsearMensajeWhatsApp, type HerramientaItem } from "./parser";
+import { parsearMensajeWhatsApp, type HerramientaItem, inferItemType } from "./parser";
 import styles from "./inventario.module.css";
 
 type ObraOption = { id: number; nombre: string };
@@ -28,8 +28,22 @@ export function WhatsAppImportModal({ obras }: { obras: ObraOption[] }) {
     setStep("preview");
   }
 
-  function updateItem(index: number, field: keyof HerramientaItem, value: string) {
-    setItems((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: field === "cantidad" ? Math.max(1, Number(value) || 1) : value } : item));
+  function updateItem(index: number, field: keyof HerramientaItem, value: string | number) {
+    setItems((current) =>
+      current.map((item, itemIndex) => {
+        if (itemIndex !== index) return item;
+        if (field === "cantidad") {
+          return { ...item, cantidad: Math.max(1, Number(value) || 1) };
+        }
+        if (field === "nombre") {
+          return { ...item, nombre: value as string, tipo: inferItemType(value as string) };
+        }
+        if (field === "tipo") {
+          return { ...item, tipo: value as "herramienta" | "material" };
+        }
+        return item;
+      })
+    );
   }
 
   function eliminarItem(index: number) {
@@ -71,7 +85,7 @@ export function WhatsAppImportModal({ obras }: { obras: ObraOption[] }) {
           <div className={styles.modalActions}><button className={styles.secondaryButton} disabled={pending} onClick={cerrarModal} type="button">Cancelar</button><button className={styles.primaryButton} disabled={!obraId || !texto.trim()} onClick={irAPrevisualizar} type="button">Previsualizar</button></div>
         </> : <>
           <p>Revisá y corregí los ítems detectados antes de guardarlos.</p>
-          {items.length > 0 ? <div className={styles.importTable}><div className={styles.importHeader}><span>Cantidad</span><span>Herramienta</span></div>{items.map((item, index) => <div className={styles.importRow} key={`${index}-${item.nombre}`}><input aria-label={`Cantidad de ${item.nombre}`} min="1" onChange={(event) => updateItem(index, "cantidad", event.target.value)} type="number" value={item.cantidad} /><input aria-label={`Nombre de herramienta ${index + 1}`} onChange={(event) => updateItem(index, "nombre", event.target.value)} value={item.nombre} /><button aria-label={`Quitar ${item.nombre}`} className={styles.secondaryButton} onClick={() => eliminarItem(index)} type="button">×</button></div>)}</div> : <div className={styles.error} role="alert">No se detectaron herramientas en el texto. Volvé y corregilo.</div>}
+          {items.length > 0 ? <div className={styles.importTable}><div className={styles.importHeader}><span>Cantidad</span><span>Herramienta/Material</span><span>Tipo</span></div>{items.map((item, index) => <div className={styles.importRow} key={`${index}-${item.nombre}`}><input aria-label={`Cantidad de ${item.nombre}`} min="1" onChange={(event) => updateItem(index, "cantidad", event.target.value)} type="number" value={item.cantidad} /><input aria-label={`Nombre de herramienta ${index + 1}`} onChange={(event) => updateItem(index, "nombre", event.target.value)} value={item.nombre} /><select aria-label={`Tipo de ${item.nombre}`} onChange={(event) => updateItem(index, "tipo", event.target.value)} value={item.tipo}><option value="herramienta">Herramienta</option><option value="material">Material</option></select><button aria-label={`Quitar ${item.nombre}`} className={styles.secondaryButton} onClick={() => eliminarItem(index)} type="button">×</button></div>)}</div> : <div className={styles.error} role="alert">No se detectaron herramientas en el texto. Volvé y corregilo.</div>}
           {message && <div className={styles.error} role="alert">{message}</div>}
           <div className={styles.modalActions}><button className={styles.secondaryButton} disabled={pending} onClick={() => setStep("input")} type="button">Volver</button><button className={styles.primaryButton} disabled={pending || items.length === 0} onClick={submit} type="button">{pending ? "Registrando..." : "Confirmar y registrar"}</button></div>
         </>}

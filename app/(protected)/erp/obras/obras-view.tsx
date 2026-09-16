@@ -121,7 +121,6 @@ export function ObrasView({ obras }: { obras: ObraResumen[] }) {
       <div className={styles.container}>
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>EAR Group / ERP</p>
             <h1 className={styles.title}>Obras y proyectos</h1>
             <p className={styles.subtitle}>Centro de control de obras, presupuestos y documentación operativa.</p>
           </div>
