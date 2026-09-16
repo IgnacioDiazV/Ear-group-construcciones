@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV !== "production";
+
+const cspHeader = `
+  upgrade-insecure-requests;
+  default-src 'self';
+  base-uri 'self';
+  object-src 'none';
+  form-action 'self';
+  style-src 'self' 'unsafe-inline';
+  script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""};
+  img-src 'self' blob: data: https://*.supabase.co;
+  frame-src https://*.supabase.co;
+  connect-src 'self' https://*.supabase.co https://api.groq.com https://dolarapi.com;
+  frame-ancestors 'none';
+`.replace(/\s{2,}/g, " ").trim();
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
@@ -33,7 +49,7 @@ const nextConfig: NextConfig = {
         },
         {
           key: "Content-Security-Policy",
-          value: "upgrade-insecure-requests; default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.supabase.co; frame-src https://*.supabase.co; connect-src 'self' https://*.supabase.co https://api.groq.com https://dolarapi.com; frame-ancestors 'none'",
+          value: cspHeader,
         },
       ],
     },
