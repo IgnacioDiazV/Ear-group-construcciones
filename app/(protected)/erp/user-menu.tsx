@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ChevronDown, LogOut } from "lucide-react";
@@ -12,7 +12,7 @@ export function UserMenu() {
   const [userEmail, setUserEmail] = useState("Usuario");
   const [isLoading, setIsLoading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const inactivityTimerRef = useRef<NodeJS.Timeout>();
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
   // Obtener email del usuario actual
@@ -32,7 +32,20 @@ export function UserMenu() {
   // Temporizador de inactividad (5 horas)
   const INACTIVITY_TIMEOUT = 5 * 60 * 60 * 1000; // 5 horas en ms
 
-  const resetInactivityTimer = () => {
+  const handleLogout = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  const resetInactivityTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
     
     if (inactivityTimerRef.current) {
@@ -42,7 +55,7 @@ export function UserMenu() {
     inactivityTimerRef.current = setTimeout(() => {
       handleLogout();
     }, INACTIVITY_TIMEOUT);
-  };
+  }, [handleLogout]);
 
   // Escuchar actividad del usuario
   useEffect(() => {
@@ -62,7 +75,7 @@ export function UserMenu() {
         clearTimeout(inactivityTimerRef.current);
       }
     };
-  }, []);
+  }, [resetInactivityTimer]);
 
   // Cerrar menú si se hace clic fuera
   useEffect(() => {
@@ -77,19 +90,6 @@ export function UserMenu() {
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen]);
-
-  async function handleLogout() {
-    setIsLoading(true);
-    try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
-      router.push("/login");
-      router.refresh();
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      setIsLoading(false);
-    }
-  }
 
   return (
     <div className={styles.userMenuContainer} ref={menuRef}>
