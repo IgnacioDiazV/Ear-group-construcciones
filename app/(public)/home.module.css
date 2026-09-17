@@ -4,7 +4,7 @@
   gap: clamp(32px, 6vw, 88px);
   align-items: center;
   padding: clamp(56px, 8vw, 96px) clamp(20px, 7vw, 96px);
-  background: linear-gradient(120deg, #3d1c14 0%, #5d291e 100%);
+  background: linear-gradient(180deg, #2b130c 0%, #3d1c14 45%, #6a2a16 75%, #c85a17 100%);
   color: #ffffff;
 }
 

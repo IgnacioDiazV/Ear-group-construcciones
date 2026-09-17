@@ -2,6 +2,7 @@ import styles from "./erp-layout.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { ErpNavigation } from "./navigation";
+import { UserMenu } from "./erp/user-menu";
 
 export default function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -13,7 +14,7 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
         </Link>
         <div className={styles.topRight}>
           <span className={styles.syncStatus}><span aria-hidden="true">●</span> Servidor sincronizado</span>
-          <span className={styles.userPill}>Admin: Usuario</span>
+          <UserMenu />
         </div>
       </header>
 

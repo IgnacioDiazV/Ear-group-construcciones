@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -18,22 +19,28 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
     setIsLoading(true);
 
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      setErrorMessage("El email o la contraseña no son correctos.");
+      if (error) {
+        setErrorMessage("El email o la contraseña no son correctos.");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(false);
-      return;
+      router.replace(getSafeNextPath());
+      router.refresh();
+    } catch (err) {
+      setErrorMessage("Ocurrió un error inesperado. Intentá de nuevo.");
+      setIsLoading(false);
     }
-
-    router.replace(getSafeNextPath());
-    router.refresh();
   }
 
   return (

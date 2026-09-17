@@ -1,0 +1,122 @@
+.userMenuContainer {
+  position: relative;
+}
+
+.userMenuTrigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #efebe9;
+  color: #3d1c14;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.userMenuTrigger:hover {
+  background: #e0d7d3;
+  color: #2c1810;
+}
+
+.userMenuTrigger:focus-visible {
+  outline: 2px solid #8d6e63;
+  outline-offset: 2px;
+}
+
+.chevron {
+  transition: transform 0.2s ease-in-out;
+}
+
+.userMenuTrigger[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.userMenuDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #d7ccc8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.userMenuHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.userEmail {
+  color: #2c2420;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.userRole {
+  color: #8d6e63;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.userMenuDivider {
+  height: 1px;
+  background: #efebe9;
+  margin: 0;
+}
+
+.userMenuLogout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  color: #c62828;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  text-align: left;
+}
+
+.userMenuLogout:hover:not(:disabled) {
+  background: #ffebee;
+  color: #b71c1c;
+}
+
+.userMenuLogout:active:not(:disabled) {
+  background: #ffcdd2;
+}
+
+.userMenuLogout:focus-visible {
+  outline: 2px solid #c62828;
+  outline-offset: -2px;
+}
+
+.userMenuLogout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
