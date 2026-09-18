@@ -29,8 +29,8 @@ export function UserMenu() {
     fetchUser();
   }, []);
 
-  // Temporizador de inactividad (5 horas)
-  const INACTIVITY_TIMEOUT = 5 * 60 * 60 * 1000; // 5 horas en ms
+  // Temporizador de inactividad (1 hora)
+  const INACTIVITY_TIMEOUT = 1 * 60 * 60 * 1000; // 1 hora en ms
 
   const handleLogout = useCallback(async () => {
     setIsLoading(true);

@@ -92,7 +92,7 @@ export default async function OperationalSections({ obra }: { obra: Obra }) {
   
   const presupuestoBase = obra.presupuesto_base ?? 0;
   const totalEjecutado = totalExpenses;
-  const saldoRestanteDisponible = Math.max(0, presupuestoBase - totalCobradoARS);
+  const saldoRestanteDisponible = Math.max(0, presupuestoBase - totalEjecutado);
   const consumedPercentage = presupuestoBase > 0 ? Math.min(100, Math.round((totalEjecutado / presupuestoBase) * 100)) : 0;
 
   return <>
