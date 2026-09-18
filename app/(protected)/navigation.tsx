@@ -13,9 +13,9 @@ import styles from "./erp-layout.module.css";
 
 const navigationItems = [
   { href: "/erp/obras", label: "Obras y Proyectos", icon: Building2 },
-  { href: "/erp/calculo", label: "Cálculo y Costos", icon: Calculator },
+  { href: "/erp/calculadora", label: "Cálculo y Costos", icon: Calculator },
   { href: "/erp/inventario", label: "Inventario y Stock", icon: Boxes },
-  { href: "/erp/rrhh", label: "Empleados / RRHH", icon: Users },
+  //{ href: "/erp/rrhh", label: "Empleados / RRHH", icon: Users },
   { href: "/erp/contabilidad", label: "Contabilidad", icon: Receipt },
 ];
 
