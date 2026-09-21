@@ -109,6 +109,7 @@ export async function transferirHerramienta(
   asignacionId: number,
   destinoObraId: number | null,
   depositoDestinoId: number | null,
+  cantidad: number = 0,
 ) {
   if (!Number.isInteger(asignacionId)) return { error: "La asignación seleccionada no es válida." };
   if (!destinoObraId && !depositoDestinoId) return { error: "Elegí una obra destino o el depósito central." };
@@ -127,26 +128,67 @@ export async function transferirHerramienta(
   const cantidadPendiente = asignacion.cantidad - asignacion.cantidad_devuelta;
   if (cantidadPendiente <= 0) return { error: "Esta herramienta ya no tiene saldo pendiente para transferir." };
 
+  // Validar que la cantidad a transferir sea válida
+  const cantidadTransferida = cantidad > 0 ? Math.min(cantidad, cantidadPendiente) : cantidadPendiente;
+  if (cantidadTransferida <= 0) return { error: "La cantidad a transferir debe ser mayor a 0." };
+  if (cantidadTransferida > cantidadPendiente) return { error: "La cantidad a transferir no puede exceder la cantidad disponible." };
+
   if (destinoObraId) {
-    const { error: updateError } = await db
-      .from("asignacion_herramientas")
-      .update({ obra_id: destinoObraId })
-      .eq("id", asignacionId);
-    if (updateError) return { error: `No se pudo transferir la herramienta: ${updateError.message}` };
+    // Transferencia a otra obra
+    if (cantidadTransferida === cantidadPendiente) {
+      // Transferencia total: reasignar el registro completo
+      const { error: updateError } = await db
+        .from("asignacion_herramientas")
+        .update({ obra_id: destinoObraId })
+        .eq("id", asignacionId);
+      if (updateError) return { error: `No se pudo transferir la herramienta: ${updateError.message}` };
+    } else {
+      // Transferencia parcial: actualizar cantidad devuelta de origen y crear nuevo registro
+      const { error: updateError } = await db
+        .from("asignacion_herramientas")
+        .update({ cantidad_devuelta: asignacion.cantidad_devuelta + cantidadTransferida })
+        .eq("id", asignacionId);
+      if (updateError) return { error: `No se pudo actualizar el registro de origen: ${updateError.message}` };
+
+      // Crear nuevo registro en la obra destino
+      const { error: insertError } = await db
+        .from("asignacion_herramientas")
+        .insert({
+          obra_id: destinoObraId,
+          articulo_id: asignacion.articulo_id,
+          descripcion_libre: asignacion.descripcion_libre,
+          cantidad: cantidadTransferida,
+          cantidad_devuelta: 0,
+          fecha_entrega: new Date().toISOString().slice(0, 10),
+          tipo_item: "herramienta", // o el tipo que corresponda
+        });
+      if (insertError) return { error: `No se pudo crear el registro en la obra destino: ${insertError.message}` };
+    }
 
     await db.from("movimientos_stock").insert({
       articulo_id: asignacion.articulo_id ?? null,
-      cantidad: cantidadPendiente,
+      cantidad: cantidadTransferida,
       obra_id: destinoObraId,
       tipo_movimiento: "traslado_obra",
-      observaciones: `Traslado de "${asignacion.descripcion_libre}" desde obra ${asignacion.obra_id} hacia obra ${destinoObraId}.`,
+      observaciones: `Traslado de "${asignacion.descripcion_libre}" (${cantidadTransferida} un) desde obra ${asignacion.obra_id} hacia obra ${destinoObraId}.`,
     });
   } else if (depositoDestinoId) {
-    const { error: updateError } = await db
-      .from("asignacion_herramientas")
-      .update({ cantidad_devuelta: asignacion.cantidad, fecha_devolucion: new Date().toISOString().slice(0, 10) })
-      .eq("id", asignacionId);
-    if (updateError) return { error: `No se pudo registrar la devolución: ${updateError.message}` };
+    // Devolución a depósito
+    if (cantidadTransferida === cantidadPendiente) {
+      // Devolución total
+      const { error: updateError } = await db
+        .from("asignacion_herramientas")
+        .update({ cantidad_devuelta: asignacion.cantidad, fecha_devolucion: new Date().toISOString().slice(0, 10) })
+        .eq("id", asignacionId);
+      if (updateError) return { error: `No se pudo registrar la devolución: ${updateError.message}` };
+    } else {
+      // Devolución parcial
+      const { error: updateError } = await db
+        .from("asignacion_herramientas")
+        .update({ cantidad_devuelta: asignacion.cantidad_devuelta + cantidadTransferida })
+        .eq("id", asignacionId);
+      if (updateError) return { error: `No se pudo registrar la devolución parcial: ${updateError.message}` };
+    }
 
     if (asignacion.articulo_id) {
       const { data: stockRow } = await db
@@ -157,19 +199,19 @@ export async function transferirHerramienta(
         .maybeSingle();
 
       if (stockRow) {
-        await db.from("stock_por_deposito").update({ cantidad_actual: stockRow.cantidad_actual + cantidadPendiente }).eq("id", stockRow.id);
+        await db.from("stock_por_deposito").update({ cantidad_actual: stockRow.cantidad_actual + cantidadTransferida }).eq("id", stockRow.id);
       } else {
-        await db.from("stock_por_deposito").insert({ deposito_id: depositoDestinoId, articulo_id: asignacion.articulo_id, cantidad_actual: cantidadPendiente });
+        await db.from("stock_por_deposito").insert({ deposito_id: depositoDestinoId, articulo_id: asignacion.articulo_id, cantidad_actual: cantidadTransferida });
       }
     }
 
     await db.from("movimientos_stock").insert({
       articulo_id: asignacion.articulo_id ?? null,
-      cantidad: cantidadPendiente,
+      cantidad: cantidadTransferida,
       obra_id: asignacion.obra_id,
       destino_deposito_id: depositoDestinoId,
       tipo_movimiento: "traslado_obra",
-      observaciones: `Devolución de "${asignacion.descripcion_libre}" al depósito central.`,
+      observaciones: `Devolución de "${asignacion.descripcion_libre}" (${cantidadTransferida} un) al depósito central.`,
     });
   }
 

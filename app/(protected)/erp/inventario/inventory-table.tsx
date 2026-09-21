@@ -19,6 +19,7 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
   const [error, setError] = useState("");
   const [transferItem, setTransferItem] = useState<HerramientaActiva | null>(null);
   const [transferDestino, setTransferDestino] = useState("");
+  const [transferCantidad, setTransferCantidad] = useState(1);
   const [editItem, setEditItem] = useState<HerramientaActiva | null>(null);
   const [editDescripcion, setEditDescripcion] = useState("");
   const [editCantidad, setEditCantidad] = useState(1);
@@ -66,16 +67,19 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
   function openTransferModal(item: HerramientaActiva) {
     setTransferItem(item);
     setTransferDestino("");
+    setTransferCantidad(1);
     setError("");
   }
 
   function confirmarTransferencia() {
-    if (!transferItem || !transferDestino) return;
+    if (!transferItem || !transferDestino || transferCantidad < 1) return;
     const destinoObraId = Number(transferDestino);
+    const cantidadPendiente = transferItem.cantidad - transferItem.cantidad_devuelta;
+    if (transferCantidad > cantidadPendiente) return;
     setPendingId(transferItem.id);
     setError("");
     startTransition(async () => {
-      const result = await transferirHerramienta(transferItem.id, destinoObraId, null);
+      const result = await transferirHerramienta(transferItem.id, destinoObraId, null, transferCantidad);
       setPendingId(null);
       if (result.error) {
         setError(result.error);
@@ -194,9 +198,22 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
             {obras.filter((obra) => obra.id !== transferItem.obra_id).map((obra) => <option key={obra.id} value={String(obra.id)}>{obra.nombre}</option>)}
           </select>
         </label>
+        <label className="block">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-1">Cantidad a Transferir</span>
+          <input 
+            type="number" 
+            min="1" 
+            max={transferItem.cantidad - transferItem.cantidad_devuelta}
+            value={transferCantidad}
+            onChange={(event) => setTransferCantidad(Math.max(1, Math.min(Number(event.target.value) || 1, transferItem.cantidad - transferItem.cantidad_devuelta)))}
+            className="w-full border rounded-lg px-3 py-2 text-sm text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#3E2723]"
+            style={{ borderColor: "#e7e0db" }}
+          />
+          <p className="text-xs text-neutral-500 mt-1">Disponible para transferir: {transferItem.cantidad - transferItem.cantidad_devuelta} unidades</p>
+        </label>
         <div className="flex justify-end gap-3 pt-2">
           <button className="border border-neutral-300 text-neutral-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-neutral-50 transition" onClick={() => setTransferItem(null)} type="button">Cancelar</button>
-          <button className="bg-[#3E2723] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2C1B17] transition disabled:opacity-50" disabled={!transferDestino || pendingId === transferItem.id} onClick={confirmarTransferencia} type="button">{pendingId === transferItem.id ? "Transfiriendo..." : "Confirmar"}</button>
+          <button className="bg-[#3E2723] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2C1B17] transition disabled:opacity-50" disabled={!transferDestino || transferCantidad < 1 || transferCantidad > (transferItem.cantidad - transferItem.cantidad_devuelta) || pendingId === transferItem.id} onClick={confirmarTransferencia} type="button">{pendingId === transferItem.id ? "Transfiriendo..." : "Confirmar"}</button>
         </div>
       </div>
     </div>}
