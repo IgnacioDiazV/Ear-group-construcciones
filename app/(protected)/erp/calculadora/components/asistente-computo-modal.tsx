@@ -40,7 +40,8 @@ function NumField({ label, value, onChange }: NumFieldProps) {
         type="number"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+        className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-blue-400"
+        style={{ borderColor: "#e7e0db" }}
         placeholder="0"
       />
     </div>
@@ -62,7 +63,8 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-500"
+        className="w-full rounded-md border bg-white px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-blue-400"
+        style={{ borderColor: "#e7e0db" }}
       >
         {options.map((o) => (
           <option key={o} value={o}>
@@ -89,17 +91,23 @@ export function AsistenteComputoModal({
   const [zAncho, setZAncho] = useState<string>("");
   const [zProf, setZProf] = useState<string>("");
   const [zCant, setZCant] = useState<string>("1");
+  const [zRepeticiones, setZRepeticiones] = useState<string>("1");
+  const [zDesperdicio, setZDesperdicio] = useState<string>("8");
 
   // Columnas / Vigas
   const [cB, setCB] = useState<string>("");
   const [cH, setCH] = useState<string>("");
   const [cLong, setCLong] = useState<string>("");
   const [cCant, setCCant] = useState<string>("1");
+  const [cRepeticiones, setCRepeticiones] = useState<string>("1");
+  const [cDesperdicio, setCDesperdicio] = useState<string>("8");
   const [cUnidad, setCUnidad] = useState<string>("M³");
 
   // Losa
   const [lLargo, setLLargo] = useState<string>("");
   const [lAncho, setLAncho] = useState<string>("");
+  const [lRepeticiones, setLRepeticiones] = useState<string>("1");
+  const [lDesperdicio, setLDesperdicio] = useState<string>("5");
 
   // Mampostería
   const [mLargo, setMLargo] = useState<string>("");
@@ -110,6 +118,8 @@ export function AsistenteComputoModal({
   );
   const [mUnidad, setMUnidad] = useState<string>("M²");
   const [mEspesor, setMEspesor] = useState<string>("0.15");
+  const [mRepeticiones, setMRepeticiones] = useState<string>("1");
+  const [mDesperdicio, setMDesperdicio] = useState<string>("10");
 
   // Superficie (contrapiso/carpeta/revoque)
   const [sLargo, setSLargo] = useState<string>("");
@@ -117,11 +127,14 @@ export function AsistenteComputoModal({
   const [sTipo, setSTipo] = useState<string>(
     "Contrapiso de hormigón pobre"
   );
+  const [sRepeticiones, setSRepeticiones] = useState<string>("1");
+  const [sDesperdicio, setSDesperdicio] = useState<string>("10");
 
   // Manual
   const [manConcepto, setManConcepto] = useState<string>("");
   const [manUnidad, setManUnidad] = useState<string>("gl");
   const [manCantidad, setManCantidad] = useState<string>("1");
+  const [manDesperdicio, setManDesperdicio] = useState<string>("0");
 
   // Precios comunes
   const [precioMaterial, setPrecioMaterial] = useState<string>("");
@@ -130,17 +143,34 @@ export function AsistenteComputoModal({
 
   // Cálculo de cantidad y unidad según el tipo activo
   const { cantidad, unidad, conceptoSugerido } = useMemo<ComputoResult>(() => {
+    const aplicarDesperdicioYRepeticiones = (
+      base: number,
+      repeticiones: number,
+      desperdicio: number
+    ) => {
+      const rep = Math.max(num(repeticiones || 1), 1);
+      const desp = Math.max(Math.min(num(desperdicio || 0), 30), 0);
+      return base * rep * (1 + desp / 100);
+    };
+
     switch (tipo) {
       case "zapatas": {
         const cantElem = Math.max(num(zCant || 1), 0) || 1;
         const volumenUnitario = num(zBase) * num(zAncho) * num(zProf);
-        const c = volumenUnitario * cantElem;
+        const base = volumenUnitario * cantElem;
+        const c = aplicarDesperdicioYRepeticiones(
+          base,
+          num(zRepeticiones),
+          num(zDesperdicio)
+        );
+        const rep = Math.max(num(zRepeticiones || 1), 1);
+        const desp = Math.max(Math.min(num(zDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: "M³",
-          conceptoSugerido: `Excavación, armado y llenado de bases/zapatas de H°A° (${cantElem} unidad${
+          conceptoSugerido: `Excavación, armado y llenado de bases/zapatas de H°A° (${rep} series de ${cantElem} unidad${
             cantElem === 1 ? "" : "es"
-          } de ${zBase || "-"} × ${zAncho || "-"} × ${zProf || "-"} m), según cálculo estructural.`,
+          } de ${zBase || "-"} × ${zAncho || "-"} × ${zProf || "-"} m) + ${desp}% desperdicio, según cálculo estructural.`,
         };
       }
 
@@ -148,25 +178,39 @@ export function AsistenteComputoModal({
         const cantElem = Math.max(num(cCant || 1), 0) || 1;
         const seccion = num(cB) * num(cH);
         const volumenUnitario = seccion * num(cLong);
-        const c =
+        const base =
           cUnidad === "M³"
             ? volumenUnitario * cantElem
             : num(cLong) * cantElem;
+        const c = aplicarDesperdicioYRepeticiones(
+          base,
+          num(cRepeticiones),
+          num(cDesperdicio)
+        );
+        const rep = Math.max(num(cRepeticiones || 1), 1);
+        const desp = Math.max(Math.min(num(cDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: cUnidad,
-          conceptoSugerido: `Armado y llenado de columnas y vigas de H°A° (${cantElem} unidad${
+          conceptoSugerido: `Armado y llenado de columnas y vigas de H°A° (${rep} series de ${cantElem} unidad${
             cantElem === 1 ? "" : "es"
-          } de ${cB || "-"} × ${cH || "-"} × ${cLong || "-"} m), encofrado y armadura incluidos.`,
+          } de ${cB || "-"} × ${cH || "-"} × ${cLong || "-"} m) + ${desp}% desperdicio, encofrado y armadura incluidos.`,
         };
       }
 
       case "losa": {
-        const c = num(lLargo) * num(lAncho);
+        const base = num(lLargo) * num(lAncho);
+        const c = aplicarDesperdicioYRepeticiones(
+          base,
+          num(lRepeticiones),
+          num(lDesperdicio)
+        );
+        const rep = Math.max(num(lRepeticiones || 1), 1);
+        const desp = Math.max(Math.min(num(lDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: "M²",
-          conceptoSugerido: `Losa de hormigón armado con viguetas pretensadas y bloques de telgopor (EPS), incluye carpeta de compresión de hormigón H-21, malla de repartición y encofrado.`,
+          conceptoSugerido: `Losa de viguetas con telgopor (${rep} un de ${lLargo || "-"}×${lAncho || "-"}m) + ${desp}% desperdicio -> Total: ${c.toFixed(2)} m². Incluye carpeta de compresión de hormigón H-21, malla de repartición y encofrado.`,
         };
       }
 
@@ -175,32 +219,48 @@ export function AsistenteComputoModal({
           num(mLargo) * num(mAlto) - num(mVanos),
           0
         );
-        const c =
+        const base =
           mUnidad === "M³"
             ? superficie * num(mEspesor)
             : superficie;
+        const c = aplicarDesperdicioYRepeticiones(
+          base,
+          num(mRepeticiones),
+          num(mDesperdicio)
+        );
+        const rep = Math.max(num(mRepeticiones || 1), 1);
+        const desp = Math.max(Math.min(num(mDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: mUnidad,
-          conceptoSugerido: `Mampostería de ${mTipoLadrillo}, asentada con mezcla cementicia 1:2:8, incluye mano de obra de elevación, descontados vanos.`,
+          conceptoSugerido: `Mampostería de ${mTipoLadrillo} (${rep} repeticiones) + ${desp}% desperdicio, asentada con mezcla cementicia 1:2:8, incluye mano de obra de elevación, descontados vanos.`,
         };
       }
 
       case "superficie": {
-        const c = num(sLargo) * num(sAncho);
+        const base = num(sLargo) * num(sAncho);
+        const c = aplicarDesperdicioYRepeticiones(
+          base,
+          num(sRepeticiones),
+          num(sDesperdicio)
+        );
+        const rep = Math.max(num(sRepeticiones || 1), 1);
+        const desp = Math.max(Math.min(num(sDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: "M²",
-          conceptoSugerido: `${sTipo}, terminación según especificaciones técnicas, incluye materiales y mano de obra de aplicación.`,
+          conceptoSugerido: `${sTipo} (${rep} repeticiones) + ${desp}% desperdicio, terminación según especificaciones técnicas, incluye materiales y mano de obra de aplicación.`,
         };
       }
 
       case "manual":
       default:
+        const desp = Math.max(Math.min(num(manDesperdicio || 0), 30), 0);
+        const c = num(manCantidad) * (1 + desp / 100);
         return {
-          cantidad: num(manCantidad),
+          cantidad: c,
           unidad: manUnidad,
-          conceptoSugerido: manConcepto,
+          conceptoSugerido: desp > 0 ? `${manConcepto} + ${desp}% desperdicio` : manConcepto,
         };
     }
   }, [
@@ -209,25 +269,36 @@ export function AsistenteComputoModal({
     zAncho,
     zProf,
     zCant,
+    zRepeticiones,
+    zDesperdicio,
     cB,
     cH,
     cLong,
     cCant,
+    cRepeticiones,
+    cDesperdicio,
     cUnidad,
     lLargo,
     lAncho,
+    lRepeticiones,
+    lDesperdicio,
     mLargo,
     mAlto,
     mVanos,
     mTipoLadrillo,
     mUnidad,
     mEspesor,
+    mRepeticiones,
+    mDesperdicio,
     sLargo,
     sAncho,
     sTipo,
+    sRepeticiones,
+    sDesperdicio,
     manConcepto,
     manUnidad,
     manCantidad,
+    manDesperdicio,
   ]);
 
   const conceptoFinal = concepto || conceptoSugerido;
@@ -246,8 +317,8 @@ export function AsistenteComputoModal({
   }, [conceptoFinal, cantidad, unidad, precioMaterial, precioManoObra, onAdd]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 print:hidden">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
+      <div className="max-h-[90vh] flex flex-col w-full max-w-2xl bg-white rounded-xl shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div className="flex items-center gap-2 text-slate-800">
             <Calculator className="h-5 w-5" style={{ color: "#b8722a" }} />
@@ -279,7 +350,7 @@ export function AsistenteComputoModal({
               }`}
               style={
                 tipo === t.id
-                  ? { backgroundColor: "#3d1c14", color: "#ffffff" }
+                  ? { backgroundColor: "#3e2723", color: "#ffffff" }
                   : undefined
               }
             >
@@ -288,7 +359,8 @@ export function AsistenteComputoModal({
           ))}
         </div>
 
-        <div className="space-y-5 px-5 py-5">
+        {/* Cuerpo con scroll garantizado */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-4">
           {/* Campos según tipo */}
           {tipo === "zapatas" && (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -300,9 +372,19 @@ export function AsistenteComputoModal({
                 onChange={setZProf}
               />
               <NumField
-                label="Cantidad de elementos iguales"
+                label="Cantidad / Elementos (u)"
                 value={zCant}
                 onChange={setZCant}
+              />
+              <NumField
+                label="Repeticiones Idénticas (u)"
+                value={zRepeticiones}
+                onChange={setZRepeticiones}
+              />
+              <NumField
+                label="Desperdicio (%)"
+                value={zDesperdicio}
+                onChange={setZDesperdicio}
               />
             </div>
           )}
@@ -317,9 +399,19 @@ export function AsistenteComputoModal({
                 onChange={setCLong}
               />
               <NumField
-                label="Cantidad de elementos iguales"
+                label="Cantidad / Elementos (u)"
                 value={cCant}
                 onChange={setCCant}
+              />
+              <NumField
+                label="Repeticiones Idénticas (u)"
+                value={cRepeticiones}
+                onChange={setCRepeticiones}
+              />
+              <NumField
+                label="Desperdicio (%)"
+                value={cDesperdicio}
+                onChange={setCDesperdicio}
               />
               <SelectField
                 label="Unidad de salida"
@@ -334,6 +426,16 @@ export function AsistenteComputoModal({
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <NumField label="Largo (m)" value={lLargo} onChange={setLLargo} />
               <NumField label="Ancho (m)" value={lAncho} onChange={setLAncho} />
+              <NumField
+                label="Repeticiones Idénticas (u)"
+                value={lRepeticiones}
+                onChange={setLRepeticiones}
+              />
+              <NumField
+                label="Desperdicio (%)"
+                value={lDesperdicio}
+                onChange={setLDesperdicio}
+              />
             </div>
           )}
 
@@ -372,6 +474,16 @@ export function AsistenteComputoModal({
                 ]}
                 className="col-span-2"
               />
+              <NumField
+                label="Repeticiones Idénticas (u)"
+                value={mRepeticiones}
+                onChange={setMRepeticiones}
+              />
+              <NumField
+                label="Desperdicio (%)"
+                value={mDesperdicio}
+                onChange={setMDesperdicio}
+              />
             </div>
           )}
 
@@ -391,6 +503,16 @@ export function AsistenteComputoModal({
                 ]}
                 className="col-span-2"
               />
+              <NumField
+                label="Repeticiones Idénticas (u)"
+                value={sRepeticiones}
+                onChange={setSRepeticiones}
+              />
+              <NumField
+                label="Desperdicio (%)"
+                value={sDesperdicio}
+                onChange={setSDesperdicio}
+              />
             </div>
           )}
 
@@ -407,6 +529,11 @@ export function AsistenteComputoModal({
                 value={manCantidad}
                 onChange={setManCantidad}
               />
+              <NumField
+                label="Desperdicio (%)"
+                value={manDesperdicio}
+                onChange={setManDesperdicio}
+              />
             </div>
           )}
 
@@ -419,28 +546,10 @@ export function AsistenteComputoModal({
               value={conceptoFinal}
               onChange={(e) => setConcepto(e.target.value)}
               rows={3}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-blue-400"
+              style={{ borderColor: "#e7e0db" }}
               placeholder="Describí el ítem de carga manual..."
             />
-          </div>
-
-          {/* Resultado del cómputo */}
-          <div
-            className="flex items-center justify-between rounded-md px-4 py-3 text-sm font-semibold"
-            style={{
-              backgroundColor: "#fef3e2",
-              color: "#8d6e63",
-            }}
-          >
-            <span>Cantidad calculada</span>
-            <span style={{ color: "#3d1c14", fontSize: "14px" }}>
-              {cantidad > 0
-                ? cantidad.toLocaleString("es-AR", {
-                    maximumFractionDigits: 3,
-                  })
-                : "0"}{" "}
-              {unidad}
-            </span>
           </div>
 
           {/* Precios unitarios */}
@@ -457,35 +566,44 @@ export function AsistenteComputoModal({
             />
           </div>
 
-          <div className="space-y-1 border-t border-slate-200 pt-3 text-sm">
-            <div className="flex items-center justify-between text-slate-600">
-              <span>
-                Precio Unitario (Material + Mano de Obra)
-              </span>
-              <span className="font-medium">
-                {formatARS(num(precioMaterial) + num(precioManoObra))}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-slate-600">
-                Costo total estimado ({cantidad > 0
+          {/* Resumen de cálculo */}
+          <div className="border-t border-slate-200 pt-4 space-y-2 bg-blue-50 p-3 rounded-md">
+            <div className="flex items-center justify-between text-sm text-slate-700">
+              <span>Metraje final a presupuestar:</span>
+              <span className="font-semibold">
+                {cantidad > 0
                   ? cantidad.toLocaleString("es-AR", {
                       maximumFractionDigits: 3,
                     })
-                  : 0}{" "}
-                {unidad} × Precio Unitario)
+                  : "0"}{" "}
+                {unidad}
               </span>
-              <span className="text-lg font-bold" style={{ color: "#3d1c14" }}>
-                {formatARS(costoEstimado)}
+            </div>
+            <div className="flex items-center justify-between text-sm text-slate-700">
+              <span>Subtotal Materiales:</span>
+              <span className="font-semibold">
+                {formatARS(cantidad * num(precioMaterial))}
               </span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-slate-700">
+              <span>Subtotal Mano de Obra:</span>
+              <span className="font-semibold">
+                {formatARS(cantidad * num(precioManoObra))}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-base font-bold text-white rounded px-3 py-2" style={{ backgroundColor: "#3e2723" }}>
+              <span>Costo Total Ítem</span>
+              <span>{formatARS(costoEstimado)}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-5 py-4">
+        {/* Footer con botones */}
+        <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-5 py-4 bg-slate-50">
           <button
             onClick={onClose}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            className="rounded-md border px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            style={{ borderColor: "#e7e0db" }}
           >
             Cancelar
           </button>
@@ -493,7 +611,7 @@ export function AsistenteComputoModal({
             onClick={handleAdd}
             disabled={!conceptoFinal.trim() || cantidad <= 0}
             className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ backgroundColor: "#3d1c14" }}
+            style={{ backgroundColor: "#3e2723" }}
           >
             <Plus className="h-4 w-4" />
             Agregar a la planilla

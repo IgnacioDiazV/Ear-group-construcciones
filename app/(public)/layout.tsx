@@ -39,15 +39,15 @@ export default function PublicLayout({ children }: Readonly<{ children: React.Re
           </div>
           <div>
             <h3>Servicios</h3>
-            <Link href="#servicios">Diseño y cálculo</Link>
+            <Link href="#servicios">Diseño</Link>
             <Link href="#servicios">Dirección de obra</Link>
             <Link href="#servicios">Visualización 3D</Link>
           </div>
           <div>
             <h3>Contacto</h3>
-            <p>info@eargroup.com</p>
-            <p>+54 381 000-0000</p>
-            <p>Tucumán, Argentina</p>
+            <p>eargroupsas@gmail.com</p>
+            <p>+54 381 000-0000 </p>
+            <p>San Miguel de Tucumán, Argentina</p>
           </div>
         </div>
         <div className={styles.footerBottom}>
