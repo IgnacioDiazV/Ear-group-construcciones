@@ -1,22 +1,30 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ExpenseForm } from "./expense-form";
-import { ExpenseTable } from "./expense-table";
+import { Suspense } from "react";
 import { ContabilidadTabs } from "./contabilidad-tabs";
+import { ContabilidadContent } from "./contabilidad-content";
+import { ComprobantesContent } from "./comprobantes-content";
+import { LiquidacionesContent } from "./liquidaciones-content";
+import { CobrosContent } from "./cobros-content";
 import styles from "./contabilidad.module.css";
 
-type Obra = { id: number; nombre: string };
-type RawExpense = { id: number; obra_id: number; descripcion: string; rubro: string; precio_unitario: number; subtotal: number | null; fecha: string; comprobante_archivo_url: string | null };
-
-export default async function ContabilidadPage() {
-  const supabase = await createSupabaseServerClient();
-  const [{ data: obrasData, error: obrasError }, { data: gastosData, error: gastosError }] = await Promise.all([
-    supabase.from("obras").select("id, nombre").order("nombre"),
-    (supabase.from("gastos_obra") as unknown as { select: (columns: string) => { order: (column: string, options: { ascending: boolean }) => Promise<{ data: RawExpense[] | null; error: { message: string } | null }> } }).select("id, obra_id, descripcion, rubro, precio_unitario, subtotal, fecha, comprobante_archivo_url").order("fecha", { ascending: false }),
-  ]);
-  const obras = (obrasData ?? []) as Obra[];
-  const obraNames = new Map(obras.map((obra) => [obra.id, obra.nombre]));
-  const expenses = (gastosData ?? []).map((expense) => ({ ...expense, obra_nombre: obraNames.get(expense.obra_id) ?? `Obra #${expense.obra_id}` }));
-  const error = obrasError?.message ?? gastosError?.message;
-
-  return <main className={styles.page}><div className={styles.container}><header className={styles.header}><div><h1>Contabilidad y comprobantes</h1><p>Gastos particionados por obra y documentación respaldatoria.</p></div></header><ContabilidadTabs />{error && <div className={styles.error} role="alert">No se pudo cargar contabilidad: {error}</div>}<ExpenseForm obras={obras} /><section className={styles.card}><div className={styles.cardHeader}><h2>Gastos de obra</h2><p>Filtrá los comprobantes por centro de costos.</p></div><ExpenseTable expenses={expenses} obras={obras} /></section></div></main>;
+export default function ContabilidadPage() {
+  return (
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div>
+            <h1>Contabilidad y comprobantes</h1>
+            <p>Gestión integral de gastos, liquidaciones y cobros.</p>
+          </div>
+        </header>
+        <ContabilidadTabs />
+        <Suspense fallback={<div>Cargando...</div>}>
+          <ContabilidadContent
+            comprobantes={<ComprobantesContent />}
+            liquidaciones={<LiquidacionesContent />}
+            cobros={<CobrosContent />}
+          />
+        </Suspense>
+      </div>
+    </main>
+  );
 }

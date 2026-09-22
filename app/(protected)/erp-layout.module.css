@@ -115,6 +115,11 @@
   color: #d7ccc8;
   font-size: 13px;
   text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 150ms ease-in-out;
 }
 
 .navItem:hover,
@@ -136,6 +141,39 @@
   color: #bcaaa4;
   font-size: 16px;
   text-align: center;
+}
+
+.navItemActive {
+  background: #5d291e !important;
+  border-left-color: #efebe9 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.navSubitem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 8px 44px;
+  font-size: 12px;
+  color: #c7bfba;
+  text-decoration: none;
+  border-radius: 4px;
+  margin: 0 12px;
+  background: transparent;
+  font-weight: 400;
+  transition: all 150ms ease-in-out;
+}
+
+.navSubitem:hover {
+  color: #ffffff;
+  background: #4a2219;
+}
+
+.navSubitem.active {
+  background: #5d291e;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .sidebarFooter {
