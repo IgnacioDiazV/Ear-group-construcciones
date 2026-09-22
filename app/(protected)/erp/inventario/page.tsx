@@ -1,11 +1,23 @@
+import { Suspense } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { WhatsAppImportModal } from "./whatsapp-import-modal";
 import { InventoryTable } from "./inventory-table";
 import styles from "./inventario.module.css";
 
+export const dynamic = "force-dynamic";
+
 type ObraOption = { id: number; nombre: string };
 type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null };
-type RawAsignacion = { id: number; obra_id: number; descripcion_libre: string; cantidad: number; cantidad_devuelta: number; fecha_entrega: string; fecha_devolucion: string | null; tipo_item: 'herramienta' | 'material' };
+type RawAsignacion = { 
+  id: number; 
+  obra_id: number; 
+  descripcion_libre: string; 
+  cantidad: number; 
+  cantidad_devuelta: number; 
+  fecha_entrega: string; 
+  fecha_devolucion: string | null; 
+  tipo_item: 'herramienta' | 'material' 
+};
 
 export default async function InventarioPage() {
   const supabase = await createSupabaseServerClient();
@@ -21,5 +33,31 @@ export default async function InventarioPage() {
   const items = (asignacionesData ?? []).map((item) => ({ ...item, obra_nombre: obraNames.get(item.obra_id) ?? `Obra #${item.obra_id}` }));
   const error = obrasError?.message ?? asignacionesError?.message;
 
-  return <main className={styles.page}><div className={styles.container}><header className={styles.header}><div><h1>Inventario y herramientas</h1><p>Control de entregas, saldos pendientes y devoluciones en obra.</p></div><WhatsAppImportModal obras={obras} /></header>{error && <div className={styles.error} role="alert">No se pudo cargar el inventario: {error}</div>}<section className={styles.card}><div className={styles.cardHeader}><h2>Herramientas activas en obra</h2><p>Seleccioná una obra para consultar sus asignaciones.</p></div><InventoryTable items={items} obras={obras} depositos={depositos} /></section></div></main>;
+  return (
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div>
+            <h1>Inventario y herramientas</h1>
+            <p>Control de entregas, saldos pendientes y devoluciones en obra.</p>
+          </div>
+          <Suspense fallback={null}>
+            <WhatsAppImportModal obras={obras} />
+          </Suspense>
+        </header>
+
+        {error && <div className={styles.error} role="alert">No se pudo cargar el inventario: {error}</div>}
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2>Herramientas activas en obra</h2>
+            <p>Seleccioná una obra para consultar sus asignaciones.</p>
+          </div>
+          <Suspense fallback={<div className="p-8 text-center text-stone-500 font-medium">Cargando tabla de inventario...</div>}>
+            <InventoryTable items={items} obras={obras} depositos={depositos} />
+          </Suspense>
+        </section>
+      </div>
+    </main>
+  );
 }

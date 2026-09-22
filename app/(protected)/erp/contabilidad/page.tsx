@@ -6,6 +6,8 @@ import { LiquidacionesContent } from "./liquidaciones-content";
 import { CobrosContent } from "./cobros-content";
 import styles from "./contabilidad.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default function ContabilidadPage() {
   return (
     <main className={styles.page}>
@@ -16,8 +18,9 @@ export default function ContabilidadPage() {
             <p>Gestión integral de gastos, liquidaciones y cobros.</p>
           </div>
         </header>
-        <ContabilidadTabs />
-        <Suspense fallback={<div>Cargando...</div>}>
+
+        <Suspense fallback={<div className="p-8 text-center text-stone-500 font-medium">Cargando contabilidad...</div>}>
+          <ContabilidadTabs />
           <ContabilidadContent
             comprobantes={<ComprobantesContent />}
             liquidaciones={<LiquidacionesContent />}

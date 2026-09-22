@@ -1,8 +1,11 @@
+import { Suspense } from "react";
 import styles from "./erp-layout.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { ErpNavigation } from "./navigation";
 import { UserMenu } from "./erp/user-menu";
+
+export const dynamic = "force-dynamic";
 
 export default function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -20,7 +23,9 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
 
       <div className={styles.mainContainer}>
         <aside className={styles.sidebar}>
-          <ErpNavigation />
+          <Suspense fallback={<nav className={styles.navigationFallback} />}>
+            <ErpNavigation />
+          </Suspense>
           <div className={styles.sidebarFooter}>Gestión integral de obra</div>
         </aside>
 
