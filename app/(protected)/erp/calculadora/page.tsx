@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { Suspense, useMemo, useState, useCallback } from "react";
 import { Calculator, Trash2, ChevronUp, ChevronDown, Plus, Printer, Download } from "lucide-react";
 import { ItemCotizacion } from "./types";
 import { formatARS, montoEnLetras, num } from "./utils/monto-en-letras";
@@ -41,7 +41,7 @@ function Field({ label, children, className = "" }: FieldProps) {
    COMPONENTE PRINCIPAL: COTIZADOR DE OBRA CIVIL
 ============================================================================ */
 
-export default function CotizadorObraCivil() {
+function CalculadoraContent() {
   // Cabecera
   const [obra, setObra] = useState<string>("");
   const [cliente, setCliente] = useState<string>("");
@@ -485,5 +485,13 @@ export default function CotizadorObraCivil() {
         />
       )}
     </div>
+  );
+}
+
+export default function CalculadoraPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center p-8">Cargando calculadora...</div>}>
+      <CalculadoraContent />
+    </Suspense>
   );
 }
