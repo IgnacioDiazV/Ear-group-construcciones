@@ -64,12 +64,27 @@ export function WhatsAppImportModal({ obras }: { obras: ObraOption[] }) {
     startTransition(async () => {
       const result = await registrarEnvioHerramientas({ obra_id: Number(obraId), fecha_entrega: fecha, items });
       setPending(false);
+      
       if (result.error) {
         setMessage(result.error);
         return;
       }
-      cerrarModal();
-      router.refresh();
+
+      // Mostrar resultados de consolidación
+      if (result.resultados && result.resultados.length > 0) {
+        const resumenLineas = result.resultados.map((r) => r.mensaje);
+        const resumen = resumenLineas.join("\n");
+        setMessage(`✓ ${result.mensaje}\n\n${resumen}`);
+        
+        // Cerrar modal después de 3 segundos si no hay errores
+        setTimeout(() => {
+          cerrarModal();
+          router.refresh();
+        }, 3000);
+      } else {
+        cerrarModal();
+        router.refresh();
+      }
     });
   }
 
@@ -81,12 +96,12 @@ export function WhatsAppImportModal({ obras }: { obras: ObraOption[] }) {
         {step === "input" ? <>
           <div className={styles.formGrid}><label>Obra<select value={obraId} onChange={(event) => setObraId(event.target.value)}>{obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}</select></label><label>Fecha de entrega<input onChange={(event) => setFecha(event.target.value)} type="date" value={fecha} /></label></div>
           <label className={styles.textareaLabel}>Mensaje recibido<textarea onChange={(event) => handleTextChange(event.target.value)} placeholder={'Ejemplo:\n2 amoladoras\nuna hormigonera\n3 taladros'} value={texto} /></label>
-          {message && <div className={styles.error} role="alert">{message}</div>}
+          {message && <div className={message.startsWith("✓") ? styles.success : styles.error} role="alert">{message}</div>}
           <div className={styles.modalActions}><button className={styles.secondaryButton} disabled={pending} onClick={cerrarModal} type="button">Cancelar</button><button className={styles.primaryButton} disabled={!obraId || !texto.trim()} onClick={irAPrevisualizar} type="button">Previsualizar</button></div>
         </> : <>
           <p>Revisá y corregí los ítems detectados antes de guardarlos.</p>
           {items.length > 0 ? <div className={styles.importTable}><div className={styles.importHeader}><span>Cantidad</span><span>Herramienta/Material</span><span>Tipo</span></div>{items.map((item, index) => <div className={styles.importRow} key={`${index}-${item.nombre}`}><input aria-label={`Cantidad de ${item.nombre}`} min="1" onChange={(event) => updateItem(index, "cantidad", event.target.value)} type="number" value={item.cantidad} /><input aria-label={`Nombre de herramienta ${index + 1}`} onChange={(event) => updateItem(index, "nombre", event.target.value)} value={item.nombre} /><select aria-label={`Tipo de ${item.nombre}`} onChange={(event) => updateItem(index, "tipo", event.target.value)} value={item.tipo}><option value="herramienta">Herramienta</option><option value="material">Material</option></select><button aria-label={`Quitar ${item.nombre}`} className={styles.secondaryButton} onClick={() => eliminarItem(index)} type="button">×</button></div>)}</div> : <div className={styles.error} role="alert">No se detectaron herramientas en el texto. Volvé y corregilo.</div>}
-          {message && <div className={styles.error} role="alert">{message}</div>}
+          {message && <div className={message.startsWith("✓") ? styles.success : styles.error} role="alert">{message}</div>}
           <div className={styles.modalActions}><button className={styles.secondaryButton} disabled={pending} onClick={() => setStep("input")} type="button">Volver</button><button className={styles.primaryButton} disabled={pending || items.length === 0} onClick={submit} type="button">{pending ? "Registrando..." : "Confirmar y registrar"}</button></div>
         </>}
       </div></div>}

@@ -11,6 +11,19 @@
 .metricLabel { color: #726560; font-size: 11px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
 .metricValue { margin-top: 6px; color: #3d1c14; font-size: 27px; font-weight: 800; }
 .metricNote { margin-top: 4px; color: #8d6e63; font-size: 12px; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.searchWrapper { flex: 1; position: relative; max-width: 400px; }
+.searchIcon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #8d6e63; pointer-events: none; width: 16px; height: 16px; }
+.searchInput { width: 100%; padding: 9px 12px 9px 36px; border: 1px solid #e7e0db; border-radius: 6px; background: #ffffff; color: #2c2420; font: inherit; font-size: 13px; }
+.searchInput:focus { border-color: #3e2723; outline: none; ring: 1px; box-shadow: 0 0 0 3px rgba(62, 39, 35, 0.1); }
+.searchInput::placeholder { color: #b9a8a1; }
+.filterButtons { display: flex; gap: 8px; flex-wrap: wrap; }
+.filterButton { padding: 8px 14px; border: 1px solid #e7e0db; border-radius: 4px; background: #ffffff; color: #5d4037; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 160ms ease; white-space: nowrap; }
+.filterButton:hover { border-color: #8d6e63; background: #faf8f7; }
+.filterButtonActive { background: #3e2723; color: #ffffff; border-color: #3e2723; }
+.emptyState { padding: 48px 24px; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; text-align: center; }
+.emptyState h2 { margin: 0; color: #3d1c14; font-size: 18px; }
+.emptyState p { margin: 8px 0 0; color: #726560; font-size: 14px; }
 .cardGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .obraCard { padding: 20px; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; box-shadow: 0 7px 20px rgba(61, 28, 20, 0.05); transition: transform 180ms ease, box-shadow 180ms ease; }
 .obraCard:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(61, 28, 20, 0.1); }

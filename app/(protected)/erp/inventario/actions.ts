@@ -24,6 +24,96 @@ function asignacionesTable(supabase: Awaited<ReturnType<typeof createSupabaseSer
   return supabase.from("asignacion_herramientas") as unknown as AsignacionTable;
 }
 
+/**
+ * Consolidar una herramienta/material: busca si existe en la misma obra y suma cantidades,
+ * o crea un registro nuevo si no existe.
+ */
+async function consolidarHerramienta(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  obra_id: number,
+  nombre: string,
+  cantidad: number,
+  tipo: "herramienta" | "material",
+  fecha_entrega: string,
+) {
+  const nombreLimpio = nombre.trim().toLowerCase();
+  
+  // Buscar registro existente activo (sin devolución total) en la misma obra con el mismo nombre
+  const db = supabase as any;
+  const { data: existente, error: fetchError } = await db
+    .from("asignacion_herramientas")
+    .select("id, descripcion_libre, cantidad, cantidad_devuelta, tipo_item")
+    .eq("obra_id", obra_id)
+    .is("fecha_devolucion", null)
+    .order("id", { ascending: false })
+    .limit(100);
+
+  if (fetchError) {
+    return { error: `No se pudo buscar duplicados: ${fetchError.message}`, consolidado: false };
+  }
+
+  // Buscar coincidencia case-insensitive y mismo tipo
+  const registroExistente = existente?.find(
+    (reg: any) =>
+      reg.descripcion_libre.toLowerCase() === nombreLimpio &&
+      reg.tipo_item === tipo
+  );
+
+  if (registroExistente) {
+    // EXISTE: sumar cantidades mediante UPDATE
+    const cantidadAnterior = registroExistente.cantidad - registroExistente.cantidad_devuelta;
+    const nuevaCantidadTotal = registroExistente.cantidad + cantidad;
+    const nuevaCantidadDisponible = cantidadAnterior + cantidad;
+
+    const { error: updateError } = await db
+      .from("asignacion_herramientas")
+      .update({
+        cantidad: nuevaCantidadTotal,
+        // Mantener cantidad_devuelta igual para que cantidad_disponible aumente correctamente
+      })
+      .eq("id", registroExistente.id);
+
+    if (updateError) {
+      return { error: `No se pudo consolidar: ${updateError.message}`, consolidado: false };
+    }
+
+    return {
+      consolidado: true,
+      accion: "actualizado",
+      nombre: registroExistente.descripcion_libre,
+      cantidadAnterior: registroExistente.cantidad - registroExistente.cantidad_devuelta,
+      cantidadNueva: cantidad,
+      cantidadTotal: nuevaCantidadTotal,
+      cantidadDisponible: nuevaCantidadDisponible,
+    };
+  }
+
+  // NO EXISTE: crear nuevo registro
+  const payload: AsignacionPayload = {
+    obra_id,
+    descripcion_libre: nombre.trim(),
+    cantidad,
+    cantidad_devuelta: 0,
+    fecha_entrega,
+    estado_herramienta: "operativa",
+    tipo_item: tipo,
+  };
+
+  const { error: insertError } = await asignacionesTable(supabase).insert([payload]);
+
+  if (insertError) {
+    return { error: `No se pudo registrar: ${insertError.message}`, consolidado: false };
+  }
+
+  return {
+    consolidado: true,
+    accion: "nuevo",
+    nombre: nombre.trim(),
+    cantidadTotal: cantidad,
+    cantidadDisponible: cantidad,
+  };
+}
+
 export async function registrarEnvioHerramientas({
   obra_id,
   fecha_entrega,
@@ -37,27 +127,68 @@ export async function registrarEnvioHerramientas({
     return { error: "Seleccioná una obra, una fecha y al menos una herramienta." };
   }
 
-  const payload: AsignacionPayload[] = items
-    .filter((item) => item.nombre.trim() && item.cantidad > 0)
-    .map((item) => ({
-      obra_id,
-      descripcion_libre: item.nombre.trim(),
-      cantidad: item.cantidad,
-      cantidad_devuelta: 0,
-      fecha_entrega,
-      estado_herramienta: "operativa",
-      tipo_item: item.tipo,
-    }));
-
-  if (payload.length === 0) return { error: "No hay herramientas válidas para registrar." };
+  const itemsValidos = items.filter((item) => item.nombre.trim() && item.cantidad > 0);
+  if (itemsValidos.length === 0) {
+    return { error: "No hay herramientas válidas para registrar." };
+  }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await asignacionesTable(supabase).insert(payload);
-  if (error) return { error: `No se pudo registrar el envío: ${error.message}` };
+  const resultados: Array<{
+    nombre: string;
+    mensaje: string;
+    accion: "nuevo" | "actualizado";
+    detalles?: any;
+  }> = [];
+  const errores: string[] = [];
+
+  // Procesar cada herramienta individualmente para consolidar duplicados
+  for (const item of itemsValidos) {
+    const resultado = await consolidarHerramienta(
+      supabase,
+      obra_id,
+      item.nombre,
+      item.cantidad,
+      item.tipo,
+      fecha_entrega,
+    );
+
+    if (resultado.error) {
+      errores.push(`${item.nombre}: ${resultado.error}`);
+      continue;
+    }
+
+    if (resultado.accion === "nuevo") {
+      resultados.push({
+        nombre: resultado.nombre,
+        accion: "nuevo",
+        mensaje: `"${resultado.nombre}" registrado exitosamente (${resultado.cantidadTotal} un.)`,
+        detalles: resultado,
+      });
+    } else if (resultado.accion === "actualizado") {
+      resultados.push({
+        nombre: resultado.nombre,
+        accion: "actualizado",
+        mensaje: `Se sumaron ${resultado.cantidadNueva} un. a "${resultado.nombre}" (Total: ${resultado.cantidadDisponible} disponibles)`,
+        detalles: resultado,
+      });
+    }
+  }
+
+  if (errores.length > 0) {
+    return {
+      error: `Algunos ítems no se pudieron procesar: ${errores.join(" | ")}`,
+      parcial: true,
+      resultados,
+    };
+  }
 
   revalidatePath("/erp/inventario");
   revalidatePath(`/erp/obras/${obra_id}`);
-  return { success: "Envío de herramientas registrado." };
+  return {
+    success: true,
+    resultados,
+    mensaje: `${resultados.length} herramienta(s) procesada(s) correctamente.`,
+  };
 }
 
 export async function registrarDevolucion(

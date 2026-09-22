@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { createObra, seedObras, type ObraActionState } from "./actions";
 import styles from "./obras.module.css";
 import type { ObraResumen } from "@/features/obras/queries";
@@ -111,10 +112,73 @@ function NewObraModal({ onClose }: { onClose: () => void }) {
 
 export function ObrasView({ obras }: { obras: ObraResumen[] }) {
   const [isModalOpen, setModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tipoUbicacion, setTipoUbicacion] = useState<"todos" | "obras" | "depositos" | "oficinas">("todos");
   const [seedState, seedAction, isSeeding] = useActionState(seedObras, initialState);
+
   const activeCount = obras.filter((obra) => obra.estado?.toLowerCase().includes("ejec")).length;
   const publicCount = obras.filter((obra) => obra.es_publica_web).length;
   const budgetCount = obras.filter((obra) => obra.presupuesto_base !== null).length;
+
+  /**
+   * Determina si una obra es depósito, oficina, o una obra regular
+   */
+  function clasificarUbicacion(
+    codigo: string,
+    nombre: string,
+  ): "deposito" | "oficina" | "obra" {
+    const codigoUpper = codigo?.toUpperCase() ?? "";
+    const nombreLower = nombre?.toLowerCase() ?? "";
+
+    // Depósitos y galpones
+    if (
+      codigoUpper.startsWith("DEP") ||
+      codigoUpper.startsWith("GAL") ||
+      nombreLower.includes("deposito") ||
+      nombreLower.includes("galpon") ||
+      nombreLower.includes("almacen")
+    ) {
+      return "deposito";
+    }
+
+    // Oficinas
+    if (
+      nombreLower.includes("oficina") ||
+      nombreLower.includes("sede") ||
+      nombreLower.includes("central")
+    ) {
+      return "oficina";
+    }
+
+    // Obras (incluye códigos OBR o cualquier otra)
+    return "obra";
+  }
+
+  /**
+   * Filtra obras según búsqueda y tipo de ubicación
+   */
+  const obrasFilteradas = obras.filter((obra) => {
+    const query = searchQuery.toLowerCase().trim();
+    const tipo = clasificarUbicacion(obra.codigo, obra.nombre);
+
+    // Filtro por tipo de ubicación
+    if (tipoUbicacion !== "todos") {
+      if (tipoUbicacion === "depositos" && tipo !== "deposito") return false;
+      if (tipoUbicacion === "oficinas" && tipo !== "oficina") return false;
+      if (tipoUbicacion === "obras" && tipo !== "obra") return false;
+    }
+
+    // Filtro por búsqueda textual (nombre, código, dirección)
+    if (query) {
+      const coincideNombre = obra.nombre.toLowerCase().includes(query);
+      const coincideCodigo = (obra.codigo?.toLowerCase() ?? "").includes(query);
+      const coincideDireccion = (obra.direccion?.toLowerCase() ?? "").includes(query);
+
+      return coincideNombre || coincideCodigo || coincideDireccion;
+    }
+
+    return true;
+  });
 
   return (
     <main className={styles.page}>
@@ -147,8 +211,58 @@ export function ObrasView({ obras }: { obras: ObraResumen[] }) {
           </section>
         ) : (
           <>
-            <section aria-label="Obras destacadas" className={styles.cardGrid}>
-              {obras.map((obra) => (
+            <section aria-label="Filtros de búsqueda" className={styles.toolbar}>
+              <div className={styles.searchWrapper}>
+                <Search className={styles.searchIcon} size={16} />
+                <input
+                  className={styles.searchInput}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar por nombre, código o dirección..."
+                  type="text"
+                  value={searchQuery}
+                />
+              </div>
+              <div className={styles.filterButtons}>
+                <button
+                  className={`${styles.filterButton} ${tipoUbicacion === "todos" ? styles.filterButtonActive : ""}`}
+                  onClick={() => setTipoUbicacion("todos")}
+                  type="button"
+                >
+                  Todos
+                </button>
+                <button
+                  className={`${styles.filterButton} ${tipoUbicacion === "obras" ? styles.filterButtonActive : ""}`}
+                  onClick={() => setTipoUbicacion("obras")}
+                  type="button"
+                >
+                  Obras
+                </button>
+                <button
+                  className={`${styles.filterButton} ${tipoUbicacion === "depositos" ? styles.filterButtonActive : ""}`}
+                  onClick={() => setTipoUbicacion("depositos")}
+                  type="button"
+                >
+                  Depósitos y Galpones
+                </button>
+                <button
+                  className={`${styles.filterButton} ${tipoUbicacion === "oficinas" ? styles.filterButtonActive : ""}`}
+                  onClick={() => setTipoUbicacion("oficinas")}
+                  type="button"
+                >
+                  Oficinas
+                </button>
+              </div>
+            </section>
+
+            {obrasFilteradas.length === 0 ? (
+              <section className={styles.emptyState}>
+                <h2>No se encontraron obras o depósitos</h2>
+                <p>No hay registros que coincidan con los filtros aplicados.</p>
+              </section>
+            ) : (
+              <>
+                <section aria-label="Obras destacadas" className={styles.cardGrid}>
+                  {obrasFilteradas.map((obra) => (
                 <article className={styles.obraCard} key={obra.id}>
                   <div className={styles.cardTop}>
                     <div><p className={styles.code}>{obra.codigo}</p><h2 className={styles.obraTitle}>{obra.nombre}</h2></div>
@@ -170,10 +284,12 @@ export function ObrasView({ obras }: { obras: ObraResumen[] }) {
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead><tr><th>Código / obra</th><th>Estado</th><th>Inicio</th><th>Cierre estimado</th><th>Presupuesto</th></tr></thead>
-                  <tbody>{obras.map((obra) => <tr key={`row-${obra.id}`}><td><Link className={styles.tableName} href={`/erp/obras/${obra.codigo}`}>{obra.nombre}</Link><div className={styles.code}>{obra.codigo}</div></td><td><StatusBadge status={obra.estado} /></td><td>{formatDate(obra.fecha_inicio)}</td><td>{formatDate(obra.fecha_fin_estimada)}</td><td>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</td></tr>)}</tbody>
+                  <tbody>{obrasFilteradas.map((obra) => <tr key={`row-${obra.id}`}><td><Link className={styles.tableName} href={`/erp/obras/${obra.codigo}`}>{obra.nombre}</Link><div className={styles.code}>{obra.codigo}</div></td><td><StatusBadge status={obra.estado} /></td><td>{formatDate(obra.fecha_inicio)}</td><td>{formatDate(obra.fecha_fin_estimada)}</td><td>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</td></tr>)}</tbody>
                 </table>
               </div>
             </section>
+              </>
+            )}
           </>
         )}
       </div>

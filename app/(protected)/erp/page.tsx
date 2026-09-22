@@ -5,7 +5,8 @@ import {
   Boxes, 
   Receipt, 
   Users, 
-  ArrowRight 
+  ArrowRight, 
+  Calculator
 } from "lucide-react";
 import styles from "./erp-welcome.module.css";
 
@@ -29,10 +30,10 @@ const modules = [
     icon: Receipt,
   },
   {
-    href: "/erp/rrhh",
-    title: "Personal y Asistencia",
-    description: "Partes diarios y control horario",
-    icon: Users,
+    href: "/erp/calculadora",
+    title: "Calculadora",
+    description: "Herramienta para realizar cálculos rápidos",
+    icon: Calculator,
   },
 ];
 
