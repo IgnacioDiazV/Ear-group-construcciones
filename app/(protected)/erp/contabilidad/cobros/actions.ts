@@ -52,13 +52,13 @@ export async function crearCobro(_previousState: CobroActionState, formData: For
     const { error: chequeError } = await supabase.from("cheques").insert({
       anticipo_id: cobro.id,
       banco,
-      estado: "EN_CARTERA",
+      estado: "en_cartera",
       fecha_emision: today(),
       fecha_pago_diferido: fechaDiferida,
       librador_nombre: librador || null,
       monto,
       numero_cheque: numeroCheque,
-      tipo: "DIFERIDO",
+      tipo: "echeq",
     });
 
     if (chequeError) return { error: `El cobro quedó registrado, pero no se pudo crear el cheque: ${chequeError.message}` };
@@ -75,7 +75,7 @@ export async function marcarComoCobrado(anticipoId: number, chequeId?: number) {
   if (error) return { error: `No se pudo marcar como cobrado: ${error.message}` };
 
   if (chequeId) {
-    const { error: chequeError } = await supabase.from("cheques").update({ estado: "cobrado" }).eq("id", chequeId);
+    const { error: chequeError } = await supabase.from("cheques").update({ estado: "acreditado" }).eq("id", chequeId);
     if (chequeError) return { error: `El anticipo quedó cobrado, pero no se pudo actualizar el cheque: ${chequeError.message}` };
   }
 
@@ -88,7 +88,6 @@ export async function eliminarCobro(anticipoId: number): Promise<CobroActionStat
   
   const supabase = await createSupabaseServerClient();
   
-  // Primero eliminar cheques vinculados a este anticipo
   const { error: chequeError } = await supabase
     .from("cheques")
     .delete()
@@ -96,7 +95,6 @@ export async function eliminarCobro(anticipoId: number): Promise<CobroActionStat
   
   if (chequeError) return { error: `No se pudo eliminar los cheques vinculados: ${chequeError.message}` };
   
-  // Luego eliminar el anticipo
   const { error } = await supabase
     .from("anticipos_clientes")
     .delete()
@@ -130,7 +128,6 @@ export async function actualizarCobro(_prevState: CobroActionState, formData: Fo
 
   const supabase = await createSupabaseServerClient();
 
-  // Actualizar el anticipo
   const { error } = await supabase
     .from("anticipos_clientes")
     .update({
@@ -146,22 +143,20 @@ export async function actualizarCobro(_prevState: CobroActionState, formData: Fo
 
   if (error) return { error: `No se pudo actualizar el cobro: ${error.message}` };
 
-  // Si hay cheque vinculado, actualizar también sus datos
   if (chequeId) {
     const banco = String(formData.get("banco") ?? "").trim();
     const numeroCheque = String(formData.get("numero_cheque") ?? "").trim();
     const fechaPagoDiferido = String(formData.get("fecha_pago_diferido") ?? "").trim();
 
     if (banco || numeroCheque || fechaPagoDiferido) {
-      const updateData: any = {};
-      if (banco) updateData.banco = banco;
-      if (numeroCheque) updateData.numero_cheque = numeroCheque;
-      if (fechaPagoDiferido) updateData.fecha_pago_diferido = fechaPagoDiferido;
-      updateData.monto = monto;
-
       const { error: chequeError } = await supabase
         .from("cheques")
-        .update(updateData)
+        .update({
+          ...(banco ? { banco } : {}),
+          ...(numeroCheque ? { numero_cheque: numeroCheque } : {}),
+          ...(fechaPagoDiferido ? { fecha_pago_diferido: fechaPagoDiferido } : {}),
+          monto,
+        } as never)
         .eq("id", chequeId);
 
       if (chequeError) return { error: `El anticipo se actualizó, pero no se pudo actualizar el cheque: ${chequeError.message}` };
