@@ -11,6 +11,7 @@ type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null }
 type FilterType = "all" | "herramientas" | "materiales";
 
 export function InventoryTable({ items, obras, depositos }: { items: HerramientaActiva[]; obras: ObraOption[]; depositos: DepositoOption[] }) {
+  void depositos;
   const router = useRouter();
   const [selectedObraId, setSelectedObraId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,40 +146,43 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
   if (items.length === 0) return <div className={styles.empty}>No hay herramientas activas asignadas a obras.</div>;
 
   return <div className={styles.tableWrapper}>
-    <div className={styles.searchBarContainer}>
-      <input
-        className={styles.searchInput}
-        onChange={(event) => setSearchQuery(event.target.value)}
-        placeholder="Buscar por nombre de herramienta u obra..."
-        type="text"
-        value={searchQuery}
-      />
-      <span className={styles.searchIcon}>🔍</span>
+    <div className={styles.integratedToolbar}>
+      <div className={styles.searchBarContainer}>
+        <input
+          className={styles.searchInput}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Buscar por nombre de herramienta u obra..."
+          type="text"
+          value={searchQuery}
+        />
+        <span className={styles.searchIcon}>🔍</span>
+      </div>
+
+      <div className={styles.filterControls}>
+        <div className={styles.typeFilters}>
+          {typeFilters.map((filter) => (
+            <button
+              key={filter.key}
+              className={`${styles.typeFilterButton} ${filterType === filter.key ? styles.typeFilterButtonActive : ""}`}
+              onClick={() => setFilterType(filter.key)}
+              type="button"
+            >
+              {filter.label}
+              <span className={styles.typeFilterBadge}>{filter.count}</span>
+            </button>
+          ))}
+        </div>
+
+        <label className={styles.filterLabel} htmlFor="obra-filter">Filtrar por obra
+          <select className={styles.filterSelect} id="obra-filter" onChange={(event) => setSelectedObraId(event.target.value)} value={selectedObraId}>
+            <option value="all">Todas las obras</option>
+            {obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}
+          </select>
+        </label>
+      </div>
     </div>
 
-    <div className={styles.typeFilters}>
-      {typeFilters.map((filter) => (
-        <button
-          key={filter.key}
-          className={`${styles.typeFilterButton} ${filterType === filter.key ? styles.typeFilterButtonActive : ""}`}
-          onClick={() => setFilterType(filter.key)}
-          type="button"
-        >
-          {filter.label}
-          <span className={styles.typeFilterBadge}>{filter.count}</span>
-        </button>
-      ))}
-    </div>
-
-    <div className={styles.tableToolbar}>
-      <p className={styles.tableCount}>{filteredItems.length} {selectedObraId === "all" ? "asignaciones pendientes de devolución" : "asignaciones en esta obra"}.</p>
-      <label className={styles.filterLabel} htmlFor="obra-filter">Filtrar por obra
-        <select className={styles.filterSelect} id="obra-filter" onChange={(event) => setSelectedObraId(event.target.value)} value={selectedObraId}>
-          <option value="all">Todas las obras</option>
-          {obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}
-        </select>
-      </label>
-    </div>
+    <p className={styles.tableCount}>{filteredItems.length} {selectedObraId === "all" ? "asignaciones pendientes de devolución" : "asignaciones en esta obra"}.</p>
     {error && <div className={styles.error} role="alert">{error}</div>}
     {filteredItems.length === 0 ? <div className={styles.empty}>No hay herramientas activas para los filtros seleccionados.</div> : <table className={styles.table}><thead><tr><th>Herramienta</th><th>Obra destino</th><th>Saldo pendiente</th><th>Fecha de envío</th><th>Acción</th></tr></thead><tbody>{filteredItems.map((item) => <tr key={item.id}><td><span className={styles.itemBadge} data-type={item.tipo_item}>{item.tipo_item === "herramienta" ? "Herramienta" : "Material"}</span> {item.descripcion_libre}</td><td>{item.obra_nombre}</td><td>{item.cantidad - item.cantidad_devuelta} de {item.cantidad}</td><td>{item.fecha_entrega}</td><td><div className={styles.actionsContainer}>
         <button aria-label="Marcar devuelto" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => returnTool(item)} title="Marcar Devuelto" type="button">✓</button>

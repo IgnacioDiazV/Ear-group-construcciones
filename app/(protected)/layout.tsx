@@ -16,7 +16,7 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
           <span className={styles.brandTitle}>EAR GROUP CONSTRUCCIONES</span>
         </Link>
         <div className={styles.topRight}>
-          <span className={styles.syncStatus}><span aria-hidden="true">●</span> Servidor sincronizado</span>
+          
           <UserMenu />
         </div>
       </header>
