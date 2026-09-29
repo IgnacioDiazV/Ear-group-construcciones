@@ -1,7 +1,7 @@
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type ObraPublica = Pick<Database["public"]["Tables"]["obras"]["Row"], "id" | "nombre" | "tipo_obra" | "direccion" | "estado" | "created_at"> & {
+type ObraPublica = Pick<Database["public"]["Tables"]["obras"]["Row"], "id" | "nombre" | "tipo_obra" | "estado" | "created_at" | "codigo"> & {
   portada_url: string | null;
 };
 
@@ -9,7 +9,7 @@ export async function getObrasPublicas(): Promise<ObraPublica[]> {
   const supabase = await createSupabaseServerClient();
   const { data: obras, error: obrasError } = await supabase
     .from("obras")
-    .select("id, nombre, tipo_obra, direccion, estado, created_at")
+    .select("id, nombre, tipo_obra, estado, created_at, codigo")
     .eq("es_publica_web", true)
     .order("created_at", { ascending: false });
 

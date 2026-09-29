@@ -5,10 +5,9 @@
 .projectThumb img { object-fit: cover; transition: transform 300ms ease; }
 .projectCard:hover .projectThumb img { transform: scale(1.04); }
 .projectThumb::after { position: absolute; inset: 0; content: ""; background: linear-gradient(180deg, transparent 42%, rgba(43, 18, 12, 0.72)); }
-.projectThumb span { position: relative; z-index: 1; padding: 5px 7px; background: rgba(43, 18, 12, 0.48); font-size: 11px; font-weight: 800; letter-spacing: 0.9px; }
-.projectInfo { display: flex; flex-direction: column; align-items: start; gap: 12px; padding: 17px; }
-.projectInfo h3 { margin: 0 0 5px; color: #3d1c14; font-size: 15px; }
-.projectInfo p { margin: 0; color: #837770; font-size: 12px; }
+.projectInfo { display: flex; flex-direction: column; align-items: start; gap: 10px; padding: 17px; }
+.projectCode { display: inline-block; padding: 4px 8px; background: #f5f5f5; color: #5d291e; font-family: monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; border-radius: 3px; }
+.projectInfo h3 { margin: 0; color: #3d1c14; font-size: 15px; }
 .projectStatus { padding: 4px 10px; border-radius: 12px; background: #efebe9; color: #5d291e; font-size: 11px; font-weight: 700; }
 @media (max-width: 900px) { .portfolioGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .portfolioGrid { grid-template-columns: 1fr; } }

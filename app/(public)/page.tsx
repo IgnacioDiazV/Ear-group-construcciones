@@ -71,13 +71,10 @@ export default async function PublicHomePage() {
               <article className={portfolioStyles.projectCard} key={project.id}>
                 <div className={portfolioStyles.projectThumb}>
                   <Image alt={`Render de ${project.nombre}`} fill sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw" src={project.portada_url ?? "/renders/obra-placeholder.svg"} />
-                  <span>{project.nombre}</span>
                 </div>
                 <div className={portfolioStyles.projectInfo}>
-                  <div>
-                    <h3>{project.nombre}</h3>
-                    <p>{project.tipo_obra} <span aria-hidden="true">·</span> {project.direccion ?? "Ubicación no publicada"}</p>
-                  </div>
+                  <span className={portfolioStyles.projectCode}>{project.codigo}</span>
+                  <h3>{project.tipo_obra || project.codigo}</h3>
                   <span className={portfolioStyles.projectStatus}>{formatProjectStatus(project.estado)}</span>
                 </div>
               </article>

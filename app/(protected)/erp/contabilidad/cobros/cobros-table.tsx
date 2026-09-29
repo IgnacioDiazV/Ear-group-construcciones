@@ -4,6 +4,7 @@ import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { marcarComoCobrado, eliminarCobro, actualizarCobro } from "./actions";
 import styles from "./cobros.module.css";
+import actionStyles from "../expense-actions.module.css";
 
 type Cobro = {
   id: number;
@@ -34,9 +35,6 @@ export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[
   const [editFormData, setEditFormData] = useState<Partial<Cobro>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const WHATSAPP_PHONE = "5493816958566";
-  const DAYS_AHEAD = 5;
-
   function parseFechaLocal(value?: string | null): Date | null {
     if (!value) return null;
     const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
@@ -44,58 +42,6 @@ export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[
     const latino = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(value);
     if (latino) return new Date(Number(latino[3]), Number(latino[2]) - 1, Number(latino[1]), 12, 0, 0);
     return null;
-  }
-
-  function avisarVencimientos() {
-    console.log("Datos crudos en rows:", rows);
-
-    const now = new Date();
-    const limit = new Date(now);
-    limit.setDate(limit.getDate() + DAYS_AHEAD);
-    limit.setHours(23, 59, 59, 999);
-
-    const pendientes = rows.filter((row) => {
-      // 1. Descartar sólo si ya está efectivamente cobrado
-      const est = (row.estado || "").toLowerCase().trim();
-      if (est === "cobrado") return false;
-
-      // 2. Detección normalizada: método de pago o presencia de datos de cheque
-      const esCheque =
-        (row.metodo_pago || "").toLowerCase().includes("cheque") ||
-        Boolean(row.cheque_numero) ||
-        Boolean(row.cheque_id);
-
-      if (!esCheque) return false;
-
-      // 3. Sólo avisar cheques sin fecha o próximos a vencer
-      const fecha = parseFechaLocal(row.cheque_fecha || row.fecha_estimada_cobro);
-      return !fecha || fecha <= limit;
-    });
-
-    console.log("Pendientes detectados:", pendientes);
-
-    if (!pendientes.length) {
-      window.alert(`No se detectaron cheques pendientes. Registros totales en vista: ${rows.length}. Revisá en consola si metodo_pago figura como CHEQUE.`);
-      return;
-    }
-
-    const lineas = pendientes
-      .map((row) => {
-        const banco = row.cheque_banco || "A convenir";
-        const num = row.cheque_numero ? ` · N°: ${row.cheque_numero}` : "";
-        const fecha = row.cheque_fecha || row.fecha_estimada_cobro || "Sin fecha";
-        return `• ${row.obra_nombre}\n  Detalle: ${row.descripcion}\n  Monto: $${Number(row.monto).toLocaleString("es-AR")}\n  Banco: ${banco}${num} | Vence: ${fecha}`;
-      })
-      .join("\n\n");
-
-    const total = pendientes.reduce((acc, row) => acc + (Number(row.monto) || 0), 0);
-    const mensaje = `🔔 *EAR GROUP - Cheques y Cobros a gestionar*\n\n${lineas}\n\n*Total a ingresar:* $${total.toLocaleString("es-AR")}`;
-
-    window.open(
-      `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(mensaje)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
   }
 
   function cobrar(row: Cobro) {
@@ -189,16 +135,6 @@ export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[
         <div className={styles.empty}>No hay cobros registrados.</div>
       ) : (
         <>
-          <div className={styles.tableToolbar}>
-            <p>{rows.length} registros en cartera.</p>
-            <button
-              className={styles.whatsappButton}
-              onClick={avisarVencimientos}
-              type="button"
-            >
-              🔔 Avisar vencimientos por WhatsApp
-            </button>
-          </div>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
@@ -247,40 +183,39 @@ export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
-                          {!estaCobrado ? (
-                            <button
-                              className={styles.actionButton}
-                              disabled={pendingId === row.id}
-                              onClick={() => cobrar(row)}
-                              type="button"
-                            >
-                              {pendingId === row.id ? "Guardando..." : "Marcar cobrado"}
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: '13px', color: '#6b5b54', fontWeight: 500 }}>Completo</span>
-                          )}
+                          <button
+                            aria-label={estaCobrado ? "Cobrado" : "Marcar como cobrado"}
+                            className={actionStyles.action}
+                            disabled={pendingId === row.id}
+                            onClick={() => cobrar(row)}
+                            title={estaCobrado ? "Cobrado" : "Marcar como cobrado"}
+                            type="button"
+                          >
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                              <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                          </button>
                           <button
                             aria-label="Editar cobro"
-                            className={styles.iconButton}
+                            className={actionStyles.action}
                             onClick={() => openEditModal(row)}
                             title="Editar cobro"
                             type="button"
                           >
-                            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z" />
                             </svg>
                           </button>
                           <button
                             aria-label="Eliminar cobro"
-                            className={styles.iconButton}
+                            className={`${actionStyles.action} ${actionStyles.danger}`}
                             onClick={() => deleteCobro(row)}
                             title="Eliminar cobro"
                             type="button"
-                            style={{ color: '#d32f2f' }}
                           >
-                            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" style={{ fill: 'currentColor' }}>
-                              <path d="M6 4v2h12V4H6zm1 3h10v10c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2V7zm2 2v6h2V9H9zm4 0v6h2V9h-2z" />
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" />
                             </svg>
                           </button>
                         </div>
