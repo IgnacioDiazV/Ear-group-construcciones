@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useState, useMemo } from "react";
+import { startTransition, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { registrarDevolucion, transferirHerramienta, editarAsignacionHerramienta } from "./actions";
 import styles from "./inventario.module.css";
@@ -10,12 +10,15 @@ type ObraOption = { id: number; nombre: string };
 type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null };
 type FilterType = "all" | "herramientas" | "materiales";
 
+const PAGE_SIZE = 10;
+
 export function InventoryTable({ items, obras, depositos }: { items: HerramientaActiva[]; obras: ObraOption[]; depositos: DepositoOption[] }) {
   void depositos;
   const router = useRouter();
   const [selectedObraId, setSelectedObraId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [pendingId, setPendingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [transferItem, setTransferItem] = useState<HerramientaActiva | null>(null);
@@ -26,6 +29,11 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
   const [editCantidad, setEditCantidad] = useState(1);
   const [editObraId, setEditObraId] = useState("");
   const [editTipoItem, setEditTipoItem] = useState<'herramienta' | 'material'>("herramienta");
+
+  // Resetear página cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedObraId, filterType, searchQuery]);
 
   const filteredItems = useMemo(() => {
     let result = selectedObraId === "all"
@@ -47,6 +55,11 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
 
     return result;
   }, [items, selectedObraId, filterType, searchQuery]);
+
+  const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE) || 1;
+  const itemsPaginados = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const desde = filteredItems.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const hasta = Math.min(currentPage * PAGE_SIZE, filteredItems.length);
 
   function returnTool(item: HerramientaActiva) {
     const pendiente = item.cantidad - item.cantidad_devuelta;
@@ -184,11 +197,41 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
 
     <p className={styles.tableCount}>{filteredItems.length} {selectedObraId === "all" ? "asignaciones pendientes de devolución" : "asignaciones en esta obra"}.</p>
     {error && <div className={styles.error} role="alert">{error}</div>}
-    {filteredItems.length === 0 ? <div className={styles.empty}>No hay herramientas activas para los filtros seleccionados.</div> : <table className={styles.table}><thead><tr><th>Herramienta</th><th>Obra destino</th><th>Saldo pendiente</th><th>Fecha de envío</th><th>Acción</th></tr></thead><tbody>{filteredItems.map((item) => <tr key={item.id}><td><span className={styles.itemBadge} data-type={item.tipo_item}>{item.tipo_item === "herramienta" ? "Herramienta" : "Material"}</span> {item.descripcion_libre}</td><td>{item.obra_nombre}</td><td>{item.cantidad - item.cantidad_devuelta} de {item.cantidad}</td><td>{item.fecha_entrega}</td><td><div className={styles.actionsContainer}>
+    {filteredItems.length === 0 ? <div className={styles.empty}>No hay herramientas activas para los filtros seleccionados.</div> : <>
+      <table className={styles.table}><thead><tr><th>Herramienta</th><th>Obra destino</th><th>Saldo pendiente</th><th>Fecha de envío</th><th>Acción</th></tr></thead><tbody>{itemsPaginados.map((item) => <tr key={item.id}><td><span className={styles.itemBadge} data-type={item.tipo_item}>{item.tipo_item === "herramienta" ? "Herramienta" : "Material"}</span> {item.descripcion_libre}</td><td>{item.obra_nombre}</td><td>{item.cantidad - item.cantidad_devuelta} de {item.cantidad}</td><td>{item.fecha_entrega}</td><td><div className={styles.actionsContainer}>
         <button aria-label="Marcar devuelto" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => returnTool(item)} title="Marcar Devuelto" type="button">✓</button>
         <button aria-label="Transferir" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => openTransferModal(item)} title="Transferir" type="button">⭾</button>
         <button aria-label="Editar" className={styles.iconButton} disabled={pendingId === item.id} onClick={() => openEditModal(item)} title="Editar" type="button">✎</button>
-      </div></td></tr>)}</tbody></table>}
+      </div></td></tr>)}</tbody></table>
+
+      {/* Pie de página con paginador */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid #d3cec9', padding: '12px 16px' }} className="sm:flex-row sm:items-center sm:justify-between">
+        <div style={{ fontSize: '12px', color: '#8b7a73' }}>
+          Mostrando {desde} a {hasta} de {filteredItems.length} artículos
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-[#2B1810] text-white hover:bg-[#3D2318] rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition"
+            type="button"
+          >
+            Anterior
+          </button>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#4a3f3a' }}>
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="bg-[#2B1810] text-white hover:bg-[#3D2318] rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition"
+            type="button"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </>}
     {transferItem && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setTransferItem(null)} role="presentation">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150" onClick={(event) => event.stopPropagation()} role="dialog">
         <div>
