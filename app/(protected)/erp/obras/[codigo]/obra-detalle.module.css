@@ -43,7 +43,7 @@
 .editForm input, .editForm select { width: 100%; padding: 10px 11px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #2c2420; font: inherit; font-size: 13px; font-weight: 400; }
 .contentGrid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 20px; align-items: start; }
 .card { overflow: hidden; border: 1px solid #e0dcda; border-radius: 6px; background: #ffffff; box-shadow: 0 6px 20px rgba(61, 28, 20, .04); }
-.cardHeader { padding: 19px 20px; border-bottom: 1px solid #e0dcda; }
+.cardHeader { padding: 19px 20px 12px; }
 .cardHeader h2 { margin: 0; color: #3d1c14; font-size: 18px; }
 .cardHeader p { margin: 5px 0 0; color: #726560; font-size: 12px; }
 .tabs { display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid #e0dcda; }
