@@ -17,3 +17,10 @@
 - **Parseo Defensivo de Fechas**: Soportar de manera flexible tanto formato latino `DD/MM/YYYY` como ISO `YYYY-MM-DD` fijando la hora al mediodía local (12:00:00) para neutralizar desfases de zona horaria UTC.
 - **Relaciones de Supabase**: Contemplar que las relaciones foráneas (como cheques o anticipos) pueden retornar tanto como array de un solo elemento `[ {...} ]` o como objeto directo `{...}` según la consulta.
 - **Mensajería WhatsApp**: En los links salientes a `https://wa.me/`, sanitizar siempre el mensaje con `encodeURIComponent` y estructurar el texto con negritas y saltos de línea prolijos.
+
+## Protocolo de Limpieza y Refactorización
+- **Modo Auditoría**: Al solicitar revisión de código o limpieza, entregar primero una lista numerada y concisa con los hallazgos:
+  1. Código muerto / imports en desuso.
+  2. Duplicación de lógica entre Server/Client components o helpers.
+  3. Tipos flojos (`any`, campos no sincronizados con `database.types.ts`).
+- **Aplicación por Bloques**: No reescribir componentes completos; entregar únicamente el diff o bloque específico a corregir tras la confirmación.

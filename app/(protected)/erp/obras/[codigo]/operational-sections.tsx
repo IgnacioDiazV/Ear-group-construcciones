@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { getUSDARSRate } from "@/lib/exchange-rates";
 import { DocumentsPanel } from "./documents-panel";
-import { ActivityPanel } from "./activity-panel";
+import { ActivityPanel, type ActivityEvent } from "./activity-panel";
 import styles from "./obra-detalle.module.css";
 
 type Documento = Database["public"]["Tables"]["documentos_obra"]["Row"];
@@ -12,29 +12,9 @@ type Articulo = Database["public"]["Tables"]["articulos"]["Row"];
 type Gasto = Database["public"]["Tables"]["gastos_obra"]["Row"];
 type Anticipo = Database["public"]["Tables"]["anticipos_clientes"]["Row"];
 type Cheque = Database["public"]["Tables"]["cheques"]["Row"];
-type ActivityEvent = {
-  id?: number;
-  referencia_id?: string | null;
-  obra_id: number;
-  fecha: string;
-  mes_anio: string | null;
-  semana_mes: number | null;
-  tipo_evento: string;
-  detalle: string;
-  monto: number | null;
-  url_archivo: string | null;
-};
 type RelatedData<T> = { data: T[]; error?: string };
 
 type Obra = Database["public"]["Tables"]["obras"]["Row"];
-
-function progressClass(percentage: number) {
-  if (percentage >= 100) return styles.progress100;
-  if (percentage >= 75) return styles.progress75;
-  if (percentage >= 50) return styles.progress50;
-  if (percentage >= 25) return styles.progress25;
-  return styles.progress0;
-}
 
 async function getRelatedData(id: number) {
   const supabase = await createSupabaseServerClient();
@@ -42,7 +22,26 @@ async function getRelatedData(id: number) {
   const movementsResult = await supabase.from("movimientos_stock").select("*").eq("obra_id", id).order("fecha", { ascending: false });
   const expensesResult = await supabase.from("gastos_obra").select("*").eq("obra_id", id).order("fecha", { ascending: false });
   const advancesResult = await supabase.from("anticipos_clientes").select("*").eq("obra_id", id).order("fecha_estimada_cobro", { ascending: true });
-  const activityResult = await (supabase as any).from("vista_actividad_obra").select("*").eq("obra_id", id).order("fecha", { ascending: false });
+  
+  const activityQuery = await (supabase as unknown as {
+    from: (table: string) => {
+      select: (cols: string) => {
+        eq: (col: string, val: unknown) => {
+          order: (col: string, opts: { ascending: boolean }) => Promise<{
+            data: ActivityEvent[] | null;
+            error: { message: string } | null;
+          }>;
+        };
+      };
+    };
+  })
+    .from("vista_actividad_obra")
+    .select("*")
+    .eq("obra_id", id)
+    .order("fecha", { ascending: false });
+
+  const activityData = activityQuery.data ?? [];
+  const activityError = activityQuery.error ? activityQuery.error.message : undefined;
 
   const movements = (movementsResult.data ?? []) as Movimiento[];
   const advances = (advancesResult.data ?? []) as Anticipo[];
@@ -63,7 +62,10 @@ async function getRelatedData(id: number) {
     expenses: { data: (expensesResult.data ?? []) as Gasto[], error: expensesResult.error?.message },
     advances: { data: advances, error: advancesResult.error?.message },
     checks: { data: (checksResult.data ?? []) as Cheque[], error: checksResult.error?.message },
-    activity: { data: (activityResult.data ?? []) as ActivityEvent[], error: activityResult.error?.message },
+    activity: {
+      data: activityData,
+      error: activityError,
+    },
   } satisfies { documents: RelatedData<Documento>; movements: RelatedData<Movimiento>; articles: RelatedData<Articulo>; expenses: RelatedData<Gasto>; advances: RelatedData<Anticipo>; checks: RelatedData<Cheque>; activity: RelatedData<ActivityEvent> };
 }
 
@@ -183,7 +185,7 @@ export default async function OperationalSections({ obra }: { obra: Obra }) {
           
           {/* Agregamos el contenedor con padding de 20px y margen inferior */}
           <div className="p-5 pt-3">
-            <ActivityPanel eventos={related.activity.data} error={related.activity.error} />
+            <ActivityPanel eventos={related.activity.data} error={related.activity.error ?? undefined} />
           </div>
         </section>
 

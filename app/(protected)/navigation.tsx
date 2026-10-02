@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   Building2, 
   Calculator, 
   Boxes, 
-  Users, 
   Receipt,
   ChevronDown,
   ChevronRight
@@ -18,7 +17,6 @@ const navigationItems = [
   { href: "/erp/obras", label: "Obras y Proyectos", icon: Building2 },
   { href: "/erp/calculadora", label: "Cálculo y Costos", icon: Calculator },
   { href: "/erp/inventario", label: "Inventario y Stock", icon: Boxes },
-  //{ href: "/erp/rrhh", label: "Empleados / RRHH", icon: Users },
 ];
 
 const contabilidadSubitems = [
@@ -40,13 +38,14 @@ export function ErpNavigation() {
   }, [pathname]);
 
   const isContabilidadActive = pathname.includes("/erp/contabilidad");
-  const currentTab = searchParams.get("tab") || inferTabFromPathname(pathname);
 
-  function inferTabFromPathname(path: string): string {
-    if (path.includes("/liquidaciones")) return "liquidaciones";
-    if (path.includes("/cobros")) return "cobros";
+  const currentTab = useMemo(() => {
+    const tab = searchParams.get("tab");
+    if (tab) return tab;
+    if (pathname.includes("/liquidaciones")) return "liquidaciones";
+    if (pathname.includes("/cobros")) return "cobros";
     return "comprobantes";
-  }
+  }, [searchParams, pathname]);
 
   return (
     <nav aria-label="Navegación del ERP">
@@ -57,9 +56,10 @@ export function ErpNavigation() {
         return (
           <Link
             aria-current={isActive ? "page" : undefined}
-            className={styles.navItem}
+            className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
             href={item.href}
             key={item.href}
+            prefetch={true}
           >
             <span aria-hidden="true" className={styles.navIcon}>
               <IconComponent size={18} />
@@ -71,7 +71,8 @@ export function ErpNavigation() {
 
       {/* Contabilidad Accordion */}
       <button
-        onClick={() => setIsContabilidadOpen(!isContabilidadOpen)}
+        type="button"
+        onClick={() => setIsContabilidadOpen((prev) => !prev)}
         className={`${styles.navItem} ${isContabilidadActive ? styles.navItemActive : ""}`}
         style={{
           display: "flex",
@@ -103,11 +104,12 @@ export function ErpNavigation() {
       {isContabilidadOpen && (
         <div className="flex flex-col gap-1 w-full px-2 py-1">
           {contabilidadSubitems.map((subitem) => {
-            const isSubitemActive = currentTab === subitem.key;
+            const isSubitemActive = isContabilidadActive && currentTab === subitem.key;
             return (
               <Link
                 key={subitem.key}
                 href={subitem.href}
+                prefetch={true}
                 className={`pl-10 pr-3 py-2 text-sm rounded-lg w-full flex items-center transition-colors ${
                   isSubitemActive
                     ? "bg-[#5d291e] text-white font-medium shadow-sm"

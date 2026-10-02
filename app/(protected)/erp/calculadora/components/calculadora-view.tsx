@@ -3,7 +3,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { Calculator, Trash2, ChevronUp, ChevronDown, Plus, Printer, Download } from "lucide-react";
 import { ItemCotizacion } from "../types";
-import { formatARS, montoEnLetras, num } from "../utils/monto-en-letras";
+import { formatARS, montoEnLetras } from "../utils/monto-en-letras";
 import { exportarCotizacionAExcel } from "../utils/export-excel";
 import { AsistenteComputoModal } from "./asistente-computo-modal";
 

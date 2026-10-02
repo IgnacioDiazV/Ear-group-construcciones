@@ -1,5 +1,3 @@
-import { ReactNode } from "react";
-
 export interface ItemCotizacion {
   id: number;
   concepto: string;
@@ -12,12 +10,6 @@ export interface ItemCotizacion {
 export interface TipoComputo {
   id: string;
   label: string;
-}
-
-export interface FieldProps {
-  label: string;
-  children: ReactNode;
-  className?: string;
 }
 
 export interface NumFieldProps {

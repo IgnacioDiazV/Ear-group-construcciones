@@ -9,7 +9,7 @@ import {
   NumFieldProps,
   SelectFieldProps,
 } from "../types";
-import { formatARS, montoEnLetras, num } from "../utils/monto-en-letras";
+import { formatARS, num } from "../utils/monto-en-letras";
 
 /* ============================================================================
    TIPOS Y CONSTANTES
@@ -26,7 +26,17 @@ const TIPOS_COMPUTO: TipoComputo[] = [
 
 const UNIDADES_OPCIONES = ["M³", "M²", "ml", "un", "gl", "kg", "hs"];
 
-/* ============================================================================
+function normalizarRepeticionesYDesperdicio(
+  repeticiones: string,
+  desperdicio: string
+) {
+  return {
+    repeticiones: Math.max(num(repeticiones || "1"), 1),
+    desperdicio: Math.max(0, Math.min(100, num(desperdicio || "0"))),
+  };
+}
+
+/* ============================================================================ 
    COMPONENTES AUXILIARES
 ============================================================================ */
 
@@ -147,24 +157,20 @@ export function AsistenteComputoModal({
       base: number,
       repeticiones: number,
       desperdicio: number
-    ) => {
-      const rep = Math.max(num(repeticiones || 1), 1);
-      const desp = Math.max(Math.min(num(desperdicio || 0), 30), 0);
-      return base * rep * (1 + desp / 100);
-    };
+    ) => base * repeticiones * (1 + desperdicio / 100);
 
     switch (tipo) {
       case "zapatas": {
         const cantElem = Math.max(num(zCant || 1), 0) || 1;
         const volumenUnitario = num(zBase) * num(zAncho) * num(zProf);
         const base = volumenUnitario * cantElem;
+        const { repeticiones: rep, desperdicio: desp } =
+          normalizarRepeticionesYDesperdicio(zRepeticiones, zDesperdicio);
         const c = aplicarDesperdicioYRepeticiones(
           base,
-          num(zRepeticiones),
-          num(zDesperdicio)
+          rep,
+          desp
         );
-        const rep = Math.max(num(zRepeticiones || 1), 1);
-        const desp = Math.max(Math.min(num(zDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: "M³",
@@ -182,13 +188,13 @@ export function AsistenteComputoModal({
           cUnidad === "M³"
             ? volumenUnitario * cantElem
             : num(cLong) * cantElem;
+        const { repeticiones: rep, desperdicio: desp } =
+          normalizarRepeticionesYDesperdicio(cRepeticiones, cDesperdicio);
         const c = aplicarDesperdicioYRepeticiones(
           base,
-          num(cRepeticiones),
-          num(cDesperdicio)
+          rep,
+          desp
         );
-        const rep = Math.max(num(cRepeticiones || 1), 1);
-        const desp = Math.max(Math.min(num(cDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: cUnidad,
@@ -200,13 +206,13 @@ export function AsistenteComputoModal({
 
       case "losa": {
         const base = num(lLargo) * num(lAncho);
+        const { repeticiones: rep, desperdicio: desp } =
+          normalizarRepeticionesYDesperdicio(lRepeticiones, lDesperdicio);
         const c = aplicarDesperdicioYRepeticiones(
           base,
-          num(lRepeticiones),
-          num(lDesperdicio)
+          rep,
+          desp
         );
-        const rep = Math.max(num(lRepeticiones || 1), 1);
-        const desp = Math.max(Math.min(num(lDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: "M²",
@@ -223,13 +229,13 @@ export function AsistenteComputoModal({
           mUnidad === "M³"
             ? superficie * num(mEspesor)
             : superficie;
+        const { repeticiones: rep, desperdicio: desp } =
+          normalizarRepeticionesYDesperdicio(mRepeticiones, mDesperdicio);
         const c = aplicarDesperdicioYRepeticiones(
           base,
-          num(mRepeticiones),
-          num(mDesperdicio)
+          rep,
+          desp
         );
-        const rep = Math.max(num(mRepeticiones || 1), 1);
-        const desp = Math.max(Math.min(num(mDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: mUnidad,
@@ -239,13 +245,13 @@ export function AsistenteComputoModal({
 
       case "superficie": {
         const base = num(sLargo) * num(sAncho);
+        const { repeticiones: rep, desperdicio: desp } =
+          normalizarRepeticionesYDesperdicio(sRepeticiones, sDesperdicio);
         const c = aplicarDesperdicioYRepeticiones(
           base,
-          num(sRepeticiones),
-          num(sDesperdicio)
+          rep,
+          desp
         );
-        const rep = Math.max(num(sRepeticiones || 1), 1);
-        const desp = Math.max(Math.min(num(sDesperdicio || 0), 30), 0);
         return {
           cantidad: c,
           unidad: "M²",
@@ -255,7 +261,8 @@ export function AsistenteComputoModal({
 
       case "manual":
       default:
-        const desp = Math.max(Math.min(num(manDesperdicio || 0), 30), 0);
+        const { desperdicio: desp } =
+          normalizarRepeticionesYDesperdicio("1", manDesperdicio);
         const c = num(manCantidad) * (1 + desp / 100);
         return {
           cantidad: c,
