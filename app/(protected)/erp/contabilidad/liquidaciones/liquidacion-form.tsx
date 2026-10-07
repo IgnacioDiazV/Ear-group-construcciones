@@ -16,7 +16,10 @@ function sumarColumnaImportes(rows: unknown[][]): number {
     columnaIndex = (rows[1]?.length ?? 1) - 1;
   }
   return rows.slice(1).reduce((acc, fila) => {
-    const valor = Number(String(fila[columnaIndex] ?? "").replace(/[^0-9.,-]/g, "").replace(",", "."));
+    const celda = fila[columnaIndex];
+    const valor = typeof celda === "number"
+      ? celda
+      : parseFloat(String(celda ?? "").replace(/[^0-9.,-]/g, "").replace(/\./g, "").replace(",", "."));
     return acc + (Number.isFinite(valor) ? valor : 0);
   }, 0);
 }

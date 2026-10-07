@@ -27,6 +27,12 @@ type Cobro = {
 
 type Obra = { id: number; nombre: string };
 
+function formatMonto(monto: number, moneda: string | null) {
+  const currency = (moneda ?? "ARS").trim().toUpperCase();
+  const amount = monto.toLocaleString("es-AR");
+  return currency === "ARS" ? `$${amount}` : `${currency} ${amount}`;
+}
+
 export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[] }) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<number | null>(null);
@@ -162,7 +168,7 @@ export function CobrosTable({ rows, obras = [] }: { rows: Cobro[]; obras?: Obra[
                       </td>
                       <td>{row.descripcion}</td>
                       <td>
-                        ${row.monto.toLocaleString("es-AR")} {row.moneda ?? "ARS"}
+                        {formatMonto(row.monto, row.moneda)}
                       </td>
                       <td>{row.metodo_pago}</td>
                       <td>

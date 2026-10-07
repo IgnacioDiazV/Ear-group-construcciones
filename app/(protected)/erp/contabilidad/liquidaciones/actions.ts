@@ -47,7 +47,7 @@ export async function guardarLiquidacion(_previousState: LiquidacionActionState,
     obra_id: obraId,
     semana_etiqueta: semanaTexto,
     fecha_pago: fechaPago || new Date().toISOString().split("T")[0],
-    total_pagado: Number(montoTotal) || 0,
+    total_pagado: montoTotal,
     archivo_url: archivoUrl,
   };
   const { error } = await database.from("caja_semanal").insert(payload);

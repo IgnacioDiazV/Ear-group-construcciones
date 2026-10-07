@@ -3,7 +3,7 @@
 
 import { startTransition, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { eliminarGasto, actualizarGasto, type ExpenseActionState } from "./actions";
+import { eliminarGasto, actualizarGasto } from "./actions";
 import styles from "./contabilidad.module.css";
 import actionStyles from "./expense-actions.module.css";
 
