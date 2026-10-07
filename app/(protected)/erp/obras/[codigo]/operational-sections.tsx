@@ -4,6 +4,7 @@ import { formatCurrency, formatDate } from "@/lib/formatters";
 import { getUSDARSRate } from "@/lib/exchange-rates";
 import { DocumentsPanel } from "./documents-panel";
 import { ActivityPanel, type ActivityEvent } from "./activity-panel";
+import { PersonalAsignado, type EmpleadoAsignado } from "./personal-asignado";
 import styles from "./obra-detalle.module.css";
 
 type Documento = Database["public"]["Tables"]["documentos_obra"]["Row"];
@@ -73,7 +74,15 @@ function RelatedError({ message }: { message?: string }) {
   return message ? <div className={styles.error} role="alert">No se pudo cargar esta sección: {message}</div> : null;
 }
 
-export default async function OperationalSections({ obra }: { obra: Obra }) {
+export default async function OperationalSections({
+  obra,
+  empleados,
+  empleadosError,
+}: {
+  obra: Obra;
+  empleados: EmpleadoAsignado[];
+  empleadosError?: string;
+}) {
   const related = await getRelatedData(obra.id);
   const totalExpenses = related.expenses.data.reduce((total, expense) => total + (expense.subtotal ?? expense.precio_unitario), 0);
   
@@ -260,13 +269,16 @@ export default async function OperationalSections({ obra }: { obra: Obra }) {
       </div>
 
       {/* Barra lateral */}
-      <aside className={`${styles.card} ${styles.sideCard}`}>
-        <h2>Datos generales</h2>
-        <div className={styles.sideRow}><span>Código</span><strong>{obra.codigo}</strong></div>
-        <div className={styles.sideRow}><span>Tipología</span><strong>{obra.tipo_obra}</strong></div>
-        <div className={styles.sideRow}><span>Visible en web</span><strong>{obra.es_publica_web ? "Sí" : "No"}</strong></div>
-        <div className={styles.sideRow}><span>Alta</span><strong>{formatDate(obra.created_at?.slice(0, 10) ?? null)}</strong></div>
-      </aside>
+      <div className="flex flex-col gap-5">
+        <aside className={`${styles.card} ${styles.sideCard}`}>
+          <h2>Datos generales</h2>
+          <div className={styles.sideRow}><span>Código</span><strong>{obra.codigo}</strong></div>
+          <div className={styles.sideRow}><span>Tipología</span><strong>{obra.tipo_obra}</strong></div>
+          <div className={styles.sideRow}><span>Visible en web</span><strong>{obra.es_publica_web ? "Sí" : "No"}</strong></div>
+          <div className={styles.sideRow}><span>Alta</span><strong>{formatDate(obra.created_at?.slice(0, 10) ?? null)}</strong></div>
+        </aside>
+        <PersonalAsignado empleados={empleados} error={empleadosError} />
+      </div>
     </div>
   </>;
 }

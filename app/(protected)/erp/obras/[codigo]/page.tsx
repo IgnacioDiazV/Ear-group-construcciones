@@ -5,11 +5,21 @@ import { formatCurrency, formatDate } from "@/lib/formatters";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ObraDetailActions } from "./obra-detail-actions";
 import OperationalSections from "./operational-sections";
+import type { EmpleadoAsignado } from "./personal-asignado";
 import { normalizeObraEstado, obraEstadoLabel } from "../estado";
 import { ScrollToTop } from "./scroll-to-top";
 import styles from "./obra-detalle.module.css";
 
 type Obra = Database["public"]["Tables"]["obras"]["Row"];
+
+type EmpleadosQuery = {
+  select: (columns: string) => {
+    eq: (column: string, value: number) => Promise<{
+      data: EmpleadoAsignado[] | null;
+      error: { message: string } | null;
+    }>;
+  };
+};
 
 function StatusBadge({ status }: { status: string | null }) {
   const normalized = normalizeObraEstado(status);
@@ -35,12 +45,16 @@ export default async function ObraDetailPage({ params }: { params: Promise<{ cod
   if (error) return <DetailError message={`No se pudo consultar la obra: ${error.message}`} />;
   if (!obra) return <DetailError message="La obra solicitada no existe o no está disponible para tu usuario." />;
 
+  const { data: empleados, error: empleadosError } = await (supabase.from("empleados") as unknown as EmpleadosQuery)
+    .select("id, nombre, apellido, apodo, telefono, contacto_emergencia_nombre, telefono_emergencia")
+    .eq("obra_actual_id", obra.id);
+
   return <main className={styles.page}>
     <ScrollToTop />
     <div className={styles.container}>
     <header className={styles.header}><div><p className={styles.eyebrow}>{obra.codigo}</p><h1 className={styles.title}>{obra.nombre}</h1><p className={styles.subtitle}>{obra.tipo_obra} {obra.direccion ? `· ${obra.direccion}` : ""}</p></div><div className={styles.headerActions}><Link className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-300 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 text-sm font-medium transition bg-white" href="/erp/obras">← Volver a obras</Link><ObraDetailActions obra={obra} /></div></header>
     <dl className={styles.overview}><div className={styles.overviewItem}><dt>Presupuesto base</dt><dd>{formatCurrency(obra.presupuesto_base, obra.moneda_base ?? "ARS")}</dd></div><div className={styles.overviewItem}><dt>Moneda</dt><dd>{obra.moneda_base ?? "No definida"}</dd></div><div className={styles.overviewItem}><dt>Inicio</dt><dd>{formatDate(obra.fecha_inicio)}</dd></div><div className={styles.overviewItem}><dt>Cierre estimado</dt><dd>{formatDate(obra.fecha_fin_estimada)}</dd></div><div className={styles.overviewItem}><dt>Cierre real</dt><dd>{obra.fecha_cierre_real ? formatDate(obra.fecha_cierre_real) : "En curso"}</dd></div><div className={styles.overviewItem}><dt>Estado</dt><dd><StatusBadge status={obra.estado} /></dd></div></dl>
-    <Suspense fallback={<OperationalSkeleton />}><OperationalSections obra={obra as Obra} /></Suspense>
+    <Suspense fallback={<OperationalSkeleton />}><OperationalSections empleados={empleados ?? []} empleadosError={empleadosError?.message} obra={obra as Obra} /></Suspense>
   </div></main>;
 }
 

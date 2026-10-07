@@ -8,6 +8,7 @@ import {
   Calculator, 
   Boxes, 
   Receipt,
+  Users,
   ChevronDown,
   ChevronRight
 } from "lucide-react";
@@ -17,7 +18,8 @@ const navigationItems = [
   { href: "/erp/obras", label: "Obras y Proyectos", icon: Building2 },
   { href: "/erp/calculadora", label: "Cálculo y Costos", icon: Calculator },
   { href: "/erp/inventario", label: "Inventario y Stock", icon: Boxes },
-];
+    { href: "/erp/rrhh", label: "Personal", icon: Users },
+  ];
 
 const contabilidadSubitems = [
   { href: "/erp/contabilidad?tab=comprobantes", label: "Comprobantes y gastos", key: "comprobantes" },

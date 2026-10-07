@@ -55,3 +55,25 @@ export function formatCurrency(value: number | null, currency = "ARS") {
     maximumFractionDigits: 0,
   }).format(value);
 }
+
+export function formatPhoneNumber(value: string | null | undefined): string {
+  const digits = value?.replace(/\D/g, "") ?? "";
+  if (!digits) return "";
+
+  const hasCountryCode = digits.startsWith("54");
+  const countryNumber = hasCountryCode ? digits.slice(2) : digits;
+  const hasMobilePrefix = countryNumber.startsWith("9");
+  const nationalNumber = hasMobilePrefix ? countryNumber.slice(1) : countryNumber;
+  const areaCodeLength = nationalNumber.startsWith("11") ? 2 : nationalNumber.length === 10 ? 3 : 2;
+  const areaCode = nationalNumber.slice(0, areaCodeLength);
+  const subscriberNumber = nationalNumber.slice(areaCodeLength);
+
+  if (!areaCode || !subscriberNumber) return value?.trim() ?? "";
+
+  const body = subscriberNumber.length > 4
+    ? `${subscriberNumber.slice(0, -4)}-${subscriberNumber.slice(-4)}`
+    : subscriberNumber;
+  const countryPrefix = hasCountryCode ? `+54${hasMobilePrefix ? " 9" : ""} ` : "";
+
+  return `${countryPrefix}${areaCode} ${body}`;
+}
