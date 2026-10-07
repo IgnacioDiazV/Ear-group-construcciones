@@ -7,13 +7,11 @@ import styles from "./inventario.module.css";
 
 type HerramientaActiva = { id: number; obra_id: number; descripcion_libre: string; cantidad: number; cantidad_devuelta: number; fecha_entrega: string; obra_nombre: string; tipo_item: 'herramienta' | 'material' };
 type ObraOption = { id: number; nombre: string };
-type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null };
 type FilterType = "all" | "herramientas" | "materiales";
 
 const PAGE_SIZE = 10;
 
-export function InventoryTable({ items, obras, depositos }: { items: HerramientaActiva[]; obras: ObraOption[]; depositos: DepositoOption[] }) {
-  void depositos;
+export function InventoryTable({ items, obras }: { items: HerramientaActiva[]; obras: ObraOption[] }) {
   const router = useRouter();
   const [selectedObraId, setSelectedObraId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,8 +28,9 @@ export function InventoryTable({ items, obras, depositos }: { items: Herramienta
   const [editObraId, setEditObraId] = useState("");
   const [editTipoItem, setEditTipoItem] = useState<'herramienta' | 'material'>("herramienta");
 
-  // Resetear página cuando cambian los filtros
+  // Resetea página cuando cambian filtros para evitar IndexOutOfBounds
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [selectedObraId, filterType, searchQuery]);
 

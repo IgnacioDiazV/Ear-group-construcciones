@@ -18,7 +18,6 @@
 .integratedToolbar { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #e0dcda; margin-bottom: 12px; flex-wrap: wrap; }
 .searchBarContainer { flex: 1; min-width: 200px; position: relative; display: flex; align-items: center; }
 .filterControls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
-.tableToolbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 0 16px; }
 .tableCount { margin: 0; padding: 8px 0; color: #726560; font-size: 13px; }
 .filterLabel { display: flex; align-items: center; gap: 9px; color: #4a3f3a; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .filterSelect { min-width: 210px; padding: 9px 30px 9px 10px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #3d1c14; font: inherit; font-size: 13px; font-weight: 500; }
@@ -27,7 +26,6 @@
 .table th { padding: 12px 10px; background: #f4f1ef; color: #726560; font-size: 11px; text-transform: uppercase; }
 .table td { padding: 14px 10px; border-top: 1px solid #efebe9; color: #4a3f3a; }
 .table tr:hover td { background: #fcfaf9; }
-.searchBarContainer { flex: 1; min-width: 200px; position: relative; display: flex; align-items: center; }
 .searchInput { flex: 1; padding: 9px 12px 9px 36px; border: 1px solid #d3cec9; border-radius: 4px; background: #ffffff; color: #3d1c14; font: inherit; font-size: 13px; }
 .searchInput::placeholder { color: #b9a8a1; }
 .searchInput:focus { border-color: #8d6e63; outline: 3px solid rgba(141, 110, 99, .15); }

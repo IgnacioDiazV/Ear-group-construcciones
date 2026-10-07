@@ -3,7 +3,7 @@
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registrarEnvioHerramientas } from "./actions";
-import { parsearMensajeWhatsApp, type HerramientaItem, inferItemType } from "./parser";
+import { parsearMensajeWhatsApp, type HerramientaItem, inferItemType, getLocalDateString } from "./parser";
 import styles from "./inventario.module.css";
 
 type ObraOption = { id: number; nombre: string };
@@ -13,15 +13,11 @@ export function WhatsAppImportModal({ obras }: { obras: ObraOption[] }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"input" | "preview">("input");
   const [obraId, setObraId] = useState(obras[0]?.id.toString() ?? "");
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(getLocalDateString());
   const [texto, setTexto] = useState("");
   const [items, setItems] = useState<HerramientaItem[]>([]);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
-
-  function handleTextChange(value: string) {
-    setTexto(value);
-  }
 
   function irAPrevisualizar() {
     setItems(parsearMensajeWhatsApp(texto));
@@ -95,7 +91,7 @@ export function WhatsAppImportModal({ obras }: { obras: ObraOption[] }) {
         <div className={styles.modalHeader}><div><p className={styles.eyebrow}>Carga rápida</p><h2 id="whatsapp-title">Cargar desde WhatsApp</h2></div><button aria-label="Cerrar" className={styles.closeButton} disabled={pending} onClick={cerrarModal} type="button">×</button></div>
         {step === "input" ? <>
           <div className={styles.formGrid}><label>Obra<select value={obraId} onChange={(event) => setObraId(event.target.value)}>{obras.map((obra) => <option key={obra.id} value={obra.id}>{obra.nombre}</option>)}</select></label><label>Fecha de entrega<input onChange={(event) => setFecha(event.target.value)} type="date" value={fecha} /></label></div>
-          <label className={styles.textareaLabel}>Mensaje recibido<textarea onChange={(event) => handleTextChange(event.target.value)} placeholder={'Ejemplo:\n2 amoladoras\nuna hormigonera\n3 taladros'} value={texto} /></label>
+          <label className={styles.textareaLabel}>Mensaje recibido<textarea onChange={(event) => setTexto(event.target.value)} placeholder={'Ejemplo:\n2 amoladoras\nuna hormigonera\n3 taladros'} value={texto} /></label>
           {message && <div className={message.startsWith("✓") ? styles.success : styles.error} role="alert">{message}</div>}
           <div className={styles.modalActions}><button className={styles.secondaryButton} disabled={pending} onClick={cerrarModal} type="button">Cancelar</button><button className={styles.primaryButton} disabled={!obraId || !texto.trim()} onClick={irAPrevisualizar} type="button">Previsualizar</button></div>
         </> : <>

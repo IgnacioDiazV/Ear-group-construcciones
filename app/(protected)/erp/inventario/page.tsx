@@ -7,7 +7,6 @@ import styles from "./inventario.module.css";
 export const dynamic = "force-dynamic";
 
 type ObraOption = { id: number; nombre: string };
-type DepositoOption = { id: number; nombre: string; es_obrador: boolean | null };
 type RawAsignacion = { 
   id: number; 
   obra_id: number; 
@@ -21,14 +20,12 @@ type RawAsignacion = {
 
 export default async function InventarioPage() {
   const supabase = await createSupabaseServerClient();
-  const [{ data: obrasData, error: obrasError }, { data: asignacionesData, error: asignacionesError }, { data: depositosData }] = await Promise.all([
+  const [{ data: obrasData, error: obrasError }, { data: asignacionesData, error: asignacionesError }] = await Promise.all([
     supabase.from("obras").select("id, nombre, estado").order("nombre"),
     (supabase.from("asignacion_herramientas") as unknown as { select: (columns: string) => { is: (column: string, value: null) => Promise<{ data: RawAsignacion[] | null; error: { message: string } | null }> } }).select("id, obra_id, descripcion_libre, cantidad, cantidad_devuelta, fecha_entrega, fecha_devolucion, tipo_item").is("fecha_devolucion", null),
-    supabase.from("depositos").select("id, nombre, es_obrador").order("nombre"),
   ]);
 
   const obras = ((obrasData ?? []) as Array<ObraOption & { estado: string | null }>).filter((obra) => !["finalizada", "cancelada"].includes(obra.estado?.toLowerCase() ?? ""));
-  const depositos = (depositosData ?? []) as DepositoOption[];
   const obraNames = new Map(obrasData?.map((obra) => [obra.id, obra.nombre]) ?? []);
   const items = (asignacionesData ?? []).map((item) => ({ ...item, obra_nombre: obraNames.get(item.obra_id) ?? `Obra #${item.obra_id}` }));
   const error = obrasError?.message ?? asignacionesError?.message;
@@ -54,7 +51,7 @@ export default async function InventarioPage() {
             <p>Seleccioná una obra para consultar sus asignaciones.</p>
           </div>
           <Suspense fallback={<div className="p-8 text-center text-stone-500 font-medium">Cargando tabla de inventario...</div>}>
-            <InventoryTable items={items} obras={obras} depositos={depositos} />
+            <InventoryTable items={items} obras={obras} />
           </Suspense>
         </section>
       </div>

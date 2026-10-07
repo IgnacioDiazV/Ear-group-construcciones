@@ -1,5 +1,20 @@
 export type HerramientaItem = { cantidad: number; nombre: string; tipo: "herramienta" | "material" };
 
+export function getLocalDateString(): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("es-AR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
+  });
+  const parts = formatter.formatToParts(now);
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  return `${year}-${month}-${day}`;
+}
+
 const PALABRAS_CLAVE_MATERIAL = [
   "bolsa",
   "bolsas",
