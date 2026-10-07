@@ -7,11 +7,28 @@ export function formatDate(date: string | Date | null | undefined): string {
     parsedDate = date;
   } else if (typeof date === "string") {
     const trimmed = date.trim();
-    // Si viene solo la fecha 'YYYY-MM-DD', le agregamos la hora local para evitar desfasaje de zona horaria
-    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-      parsedDate = new Date(`${trimmed}T00:00:00`);
+    const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+    const latinDate = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+
+    if (isoDate) {
+      parsedDate = new Date(
+        Number(isoDate[1]),
+        Number(isoDate[2]) - 1,
+        Number(isoDate[3]),
+        12,
+        0,
+        0,
+      );
+    } else if (latinDate) {
+      parsedDate = new Date(
+        Number(latinDate[3]),
+        Number(latinDate[2]) - 1,
+        Number(latinDate[1]),
+        12,
+        0,
+        0,
+      );
     } else {
-      // Si ya viene con hora o formato ISO (ej. timestamptz de Supabase como "2026-09-24T15:30:00Z")
       parsedDate = new Date(trimmed);
     }
   } else {
